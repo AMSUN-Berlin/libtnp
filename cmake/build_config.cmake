@@ -6,6 +6,8 @@ set(test_dir test)
 
 add_definitions(
   -std=c++11
+  -Wall
+  -O3
 )
 
 #Include custom CMake macro

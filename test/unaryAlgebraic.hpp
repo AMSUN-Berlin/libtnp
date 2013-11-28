@@ -21,7 +21,7 @@
 
 #include <tnp/npnumber.hpp>
 
-#include <vector>
+#include <utility>
 
 #include <boost/test/floating_point_comparison.hpp>
 
@@ -32,6 +32,10 @@
  */
 namespace tnp {
   namespace test {
+
+    const unsigned int MANY_ITERATIONS = 2000000;
+
+    NPNumber multiplyLoop(NPNumber result, unsigned int n);
 
     void checkClose(const NPNumber& expected, const NPNumber& actual) {
       BOOST_CHECK_EQUAL(expected.params(), actual.params());
@@ -57,7 +61,27 @@ namespace tnp {
 
     void testMultiplicationWithOne(const NPNumber& in) {
       const NPNumber one(in.params(), in.order(), 1.0);      
-      BOOST_CHECK_EQUAL(in, in * one);
+      BOOST_CHECK_EQUAL(in * one, in);
+    }
+
+    void testManyMultiplicationsWithOne(const std::pair<unsigned int, unsigned int> sizes) {
+      const NPNumber one(sizes.first, sizes.second, 1.0);
+      NPNumber result = multiplyLoop(one, MANY_ITERATIONS);
+
+      BOOST_CHECK_EQUAL(result, one);
+    }
+
+    void testMultiplicationWithTwo(const NPNumber& in) {
+      const NPNumber two(in.params(), in.order(), 2.0);      
+      BOOST_CHECK_EQUAL(in * two, in + in);
+    }
+
+    void testMultiplicationWithConstantOne(const NPNumber& in) {
+      BOOST_CHECK_EQUAL(in * 1, in);
+    }
+
+    void testMultiplicationWithConstantTwo(const NPNumber& in) {
+      BOOST_CHECK_EQUAL(in * 2, in + in);
     }
 
     void testSelfSubtraction(const NPNumber& in) {

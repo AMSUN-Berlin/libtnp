@@ -25,6 +25,12 @@ using namespace std;
 
 namespace tnp {
 
+  const std::vector<double> constant(double val, unsigned int size) {
+    std::vector<double> v(size);
+    v[0] = val;
+    return v;
+  }
+
   NPNumber NPNumber::plus(const NPNumber& o) const {
     vector<double> c(values.size());
     transform(values.begin(),values.end(),o.values.begin(),c.begin(), std::plus<double>());
@@ -34,10 +40,22 @@ namespace tnp {
 
   NPNumber NPNumber::minus(const NPNumber& o) const {
     vector<double> c(values.size());   
-
     transform(values.begin(),values.end(),o.values.begin(),c.begin(), std::minus<double>());
-
     return NPNumber(width, c);
   }
+
+  NPNumber NPNumber::times(const NPNumber& o) const {
+    vector<double> c(values.size());   
+    mult().apply(values, o.values, c, width);
+    return NPNumber(width, c);
+  }
+
+  NPNumber NPNumber::times(const double f) const {
+    vector<double> c(values.size());   
+    for (unsigned int i = 0; i < c.size(); ++i)
+      c[i] = values[i] * f;
+    return NPNumber(width, c);
+  }
+
 
 }

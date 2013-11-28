@@ -37,7 +37,7 @@ include(fileList.cmake)
 #Build the library
 add_library(${PROJECT_NAME} SHARED ${srcs} ${hdrs})
 
-find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
+find_package(Boost COMPONENTS system filesystem timer unit_test_framework REQUIRED)
 
 add_executable(${PROJECT_NAME}_test ${test_sources})
 
@@ -45,6 +45,7 @@ target_link_libraries(${PROJECT_NAME}_test
   ${PROJECT_NAME}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
+  ${Boost_TIMER_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
   )
       

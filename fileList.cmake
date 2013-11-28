@@ -9,8 +9,9 @@ set(hdrs ${hdrs_dir}/tnp.hpp)
 #Project source files
 set(srcs ${srcs_dir}/tnp.cpp
          ${srcs_dir}/npnumber.cpp
+	 ${srcs_dir}/multiplication.cpp
   )
 
 #Project tests
-set(test_sources ${tests_dir}/simpleTest.cpp)
+set(test_sources ${tests_dir}/simpleTest.cpp ${tests_dir}/unaryAlgebraic.cpp)
 

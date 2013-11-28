@@ -30,41 +30,54 @@
 namespace tnp {
   namespace test {
 
-    const std::vector<unsigned int> testParams({1,2,3,4,5});
+    std::vector<std::pair<unsigned int, unsigned int>> makeSizes() {
+      std::vector<std::pair<unsigned int, unsigned int>> sizes({
+	  std::make_pair(0,0),
+	    std::make_pair(0,2),
+	    std::make_pair(2,2),
+	    std::make_pair(10,5)});
+      return sizes;
+    }
 
-    const std::vector<unsigned int> testOrders({1,2,3,4,5,6,7,8,9,10});
-
-    const std::vector<double> constantsField({
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-    });
-
-    const std::vector<double> testField({
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-    });
+    const std::vector<std::pair<unsigned int, unsigned int>> testDimensions(makeSizes());
 
     std::vector<NPNumber> makeNumbers() {
       std::vector<NPNumber> v;
       
+      const std::vector<unsigned int> testParams({1,2,3,4,5,6,7,8,9,10});
+      
+      const std::vector<unsigned int> testOrders({1,2,3,4,5});
+
+      const std::vector<double> constantsField({
+	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+
+      const std::vector<double> testField({
+	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+
       for (unsigned int p : testParams) {
-	for (int o : testOrders) {
-	  
+	for (int o : testOrders) {	  
 	  /* always test on constants */
 	  for (double d : constantsField) {
 	    v.push_back(NPNumber(p, o, d));
 	  }
-
+	  
+	  const unsigned int s = (p+1)*(o+1);
 	  /* Try to make some numbers */
-	  for (int n = 0; n < testField.size(); n+=(p+1)*(o+1)) {
-	    const std::vector<double> vals(testField.begin() + n, testField.begin() + n + (p+1)*(o+1));
+	  for (int n = 0; (n+s) <= testField.size(); n+=s) {
+	    const std::vector<double> vals(testField.begin() + n, testField.begin() + n + s);
 	    v.push_back(NPNumber(p+1, vals));
 	  }
 	}
       }
-     
+      
+      std::cout << "returning " << v.size() << " test numbers of size: " << sizeof(NPNumber) << std::endl;
       return v;
     }
 
-    const std::vector<NPNumber> testNumbers = makeNumbers();
+    const std::vector<NPNumber>& testNumbers() {
+      static const std::vector<NPNumber> nums(makeNumbers());
+      return nums;
+    }
   }
 }
 
