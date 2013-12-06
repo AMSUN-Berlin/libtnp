@@ -6,6 +6,7 @@ set(test_dir test)
 
 add_definitions(
   -std=c++11
+  -march=native
   -Wall
   -O3
 )

@@ -38,6 +38,20 @@ namespace tnp {
     return NPNumber(width, c);
   }
 
+  NPNumber NPNumber::plus(const double o) const {
+    vector<double> c(values.size());
+    for (unsigned int i = 0; i < c.size(); ++i)
+      c[i] = values[i] + o;
+    return NPNumber(width, c);
+  }
+
+  NPNumber NPNumber::minus(const double o) const {
+    vector<double> c(values.size());
+    for (unsigned int i = 0; i < c.size(); ++i)
+      c[i] = values[i] - o;
+    return NPNumber(width, c);
+  }
+
   NPNumber NPNumber::minus(const NPNumber& o) const {
     vector<double> c(values.size());   
     transform(values.begin(),values.end(),o.values.begin(),c.begin(), std::minus<double>());

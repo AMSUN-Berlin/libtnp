@@ -92,7 +92,15 @@ namespace tnp {
       return plus(o);
     }
 
+    NPNumber operator+(const double o) const {
+      return plus(o);
+    }
+
     NPNumber operator-(const NPNumber& o) const {
+      return minus(o);
+    }
+
+    NPNumber operator-(const double o) const {
       return minus(o);
     }
 
