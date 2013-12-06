@@ -23,9 +23,7 @@
 #include <tnp/npnumber.hpp>
 
 /**
- * These test cases take single NPNumbers and assert a 
- * algebraic identity upon a unary operation (e.g. adding a constant) 
- * on them.
+ * Test - instances of NPNumber
  */
 namespace tnp {
   namespace test {

@@ -52,6 +52,8 @@ namespace tnp {
     
     Term operator*(const int f) const;
 
+    Term operator*(const Term f) const;
+
     StdPolynomial operator+(const Term& t) const; 
   };
 

@@ -1,6 +1,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/parameterized_test.hpp>
 
+#include "polynomialTest.hpp"
 #include "unaryAlgebraic.hpp"
 #include "analyticFunctions.hpp"
 #include "numberGenerator.hpp"
@@ -42,6 +43,12 @@ init_unit_test_suite( int argc, char* argv[] ) {
 
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testUnaryAnalyticFunction, analyticTestCases.begin(), analyticTestCases.end() ) );
+
+  const std::vector<PolynomialTest*>& polynomialTestCases = PolynomialTest::testCases();
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testPolynomial, polynomialTestCases.begin(), polynomialTestCases.end() ) );
+
 
   /*
   framework::master_test_suite().

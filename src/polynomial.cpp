@@ -17,7 +17,7 @@
  * along with tnp. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "polynomial.hpp"
+#include <tnp/polynomial.hpp>
 
 #include <math.h>
 
@@ -38,14 +38,29 @@ namespace tnp {
   }
 
   Term Term::operator^(unsigned int p) const {
+    if (p == 0)
+      return Term(1);
+
     Monomial m2(monomial);
     for (auto e : m2)
-      std::get<1>(e) += p;
+      m2[std::get<0>(e)] += (p-1);
     return Term(pow(factor, p), m2);
   }
 
   Term Term::operator*(const int f) const {
     return Term(factor*f, monomial);
+  }
+
+  Term Term::operator*(const Term t) const {
+    Monomial m(monomial);
+    for (auto e : t.monomial) {
+      unsigned int key = std::get<0>(e);
+      if (m.find(key) != m.end()) {
+	m[key] += t.monomial.at(key);
+      } else
+	m[key] = t.monomial.at(key);
+    }
+    return Term(factor * t.factor, m);
   }
 
   StdPolynomial Term::operator+(const Term& t) const {
