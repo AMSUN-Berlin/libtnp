@@ -20,31 +20,38 @@
 #ifndef POLYNOMIAL_HPP
 #define POLYNOMIAL_HPP 1
 
-#include <boost/heap/priority_queue.hpp>
+#include <iostream>
+#include <boost/optional.hpp>
 #include <utility>
 #include <map>
+#include <set>
 
 namespace tnp {
 
-  using namespace boost::heap;
+  using namespace boost;
+  using namespace std;
 
   class StdPolynomial;
 
   /**
    * standard representation of polynomials
    */
-  typedef std::map<unsigned int, unsigned int> Monomial;
+  typedef map<unsigned int, unsigned int> Monomial;
 
   class Term {
   public:
-    int factor;
     Monomial monomial;
+    int factor;
 
-    Term(int f) : factor(f) {}
+    Term() : monomial(), factor(0) {}
 
-    Term(int f, Monomial m) : factor(f), monomial(m) {}
+    Term(const Term& o) : monomial(o.monomial), factor(o.factor) {}
 
-    inline double eval(const std::vector<double>& arg) const;
+    Term(const int f) : monomial(), factor(f) {}
+
+    Term(int f, Monomial m) : monomial(m), factor(f) {}
+
+    inline double eval(const vector<double>& arg) const;
 
     Term operator ^(unsigned int p) const;
 
@@ -52,22 +59,115 @@ namespace tnp {
     
     Term operator*(const int f) const;
 
-    Term operator*(const Term f) const;
+    Term operator*(const Term& f) const;
+
+    Term operator/(const Term& term) const;
+
+    Term operator%(const Term& term) const;
 
     StdPolynomial operator+(const Term& t) const; 
+
+    bool operator==(const Term& o) const { return factor == o.factor && monomial == o.monomial; }
+
+    friend std::ostream& operator<<(std::ostream& out, const Term& t) {
+      out << t.factor << " * (";
+      for (auto e : t.monomial)
+	out << "x_" << get<0>(e) << "^" << get<1>(e) << " ";
+      out << ")";
+      return out;
+    }
   };
 
   Term var(unsigned int idx);
 
+  void addTerm(set<Term>& set, const Term& t);
+
   class StdPolynomial {
   public:
-    priority_queue<Term> terms;
+    set<Term> terms;
 
-    StdPolynomial(Term t) { terms.push(t); }
+    StdPolynomial() : terms() {}
+    
+    StdPolynomial(const StdPolynomial& o) : terms(o.terms) {}
 
-    StdPolynomial(priority_queue<Term> t) : terms(t) {}
+    StdPolynomial(const Term& t) : terms() { addTerm(terms, t); }
 
-    double eval(const std::vector<double>& arg) const;
+    StdPolynomial(const set<Term>& t) : terms(t) {}
+
+    double eval(const vector<double>& arg) const;
+
+    StdPolynomial operator*(const StdPolynomial& f) const;
+
+    StdPolynomial operator/(const Term& term) const;
+
+    StdPolynomial operator%(const Term& term) const;
+
+    StdPolynomial operator+(const StdPolynomial& t) const; 
+  
+    bool operator==(const StdPolynomial& o) const { return terms == o.terms; }
+
+    friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {
+      char comma[2] = {'\0', '\0'};
+      for (Term t : p.terms) {
+	out << comma << t;
+	comma[0] = ',';
+      }
+      return out;
+    }
+  };
+
+  /**
+   * f * var^power * (p_1 + .. + p_n) + q_1 + .. + q_m
+   */
+  class HornerPolynomial {
+    /**
+     * Factorize an ordered list of terms
+     * Returns a newly allocated Horner polynomial, if successful.
+     */
+    optional<HornerPolynomial*> factorize(const set<Term>& terms);
+
+  public:
+    unsigned int variable;
+    unsigned int power;
+    int factor;
+    optional<HornerPolynomial*> hp;
+    optional<HornerPolynomial*> hq;
+
+    HornerPolynomial(const StdPolynomial& p) {
+      optional<HornerPolynomial*> ho = factorize(p.terms);
+
+      if (ho) {
+	HornerPolynomial* h = *ho;
+	variable = h->variable;
+	power = h->power;
+	factor = h->factor;
+	hp = h->hp;
+	hq = h->hq;
+	
+	h->hp = none;
+	h->hq = none;
+	delete h;	
+      }
+    }
+
+    HornerPolynomial() : variable(0), power(0), factor(0) {}
+    
+    HornerPolynomial(int f) : factor(f) {}
+
+    HornerPolynomial(int f, unsigned int v) : variable(v), factor(f) {}
+
+    HornerPolynomial(int f, unsigned int v, unsigned int pwr, HornerPolynomial p,  
+		     HornerPolynomial q) :
+      variable(v), power(pwr), factor(f), hp(new HornerPolynomial(p)), hq(new HornerPolynomial(q)) {}    
+
+    ~HornerPolynomial() {
+      if (hp)
+	delete *hp;
+      if (hq)
+	delete *hq;
+    }
+
+    double eval(const vector<double>& arg) const;    
   };
 }
 
