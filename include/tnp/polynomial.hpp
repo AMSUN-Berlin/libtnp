@@ -110,7 +110,7 @@ namespace tnp {
       char comma[2] = {'\0', '\0'};
       for (Term t : p.terms) {
 	out << comma << t;
-	comma[0] = ',';
+	comma[0] = '+';
       }
       return out;
     }
@@ -152,9 +152,9 @@ namespace tnp {
 
     HornerPolynomial() : variable(0), power(0), factor(0) {}
     
-    HornerPolynomial(int f) : factor(f) {}
+    HornerPolynomial(int f) : variable(0), power(0), factor(f) {}
 
-    HornerPolynomial(int f, unsigned int v) : variable(v), factor(f) {}
+    HornerPolynomial(int f, unsigned int v) : variable(v), power(1), factor(f) {}
 
     HornerPolynomial(int f, unsigned int v, unsigned int pwr, HornerPolynomial p,  
 		     HornerPolynomial q) :
@@ -168,6 +168,15 @@ namespace tnp {
     }
 
     double eval(const vector<double>& arg) const;    
+
+    friend std::ostream& operator<<(std::ostream& out, const HornerPolynomial& p) {
+      out << "x_" << p.variable << "^" << p.power;
+      if (p.hp)
+	out << " * (" << (**(p.hp)) << ")";
+      if (p.hq)
+	out << " + " << (**(p.hq));
+      return out;
+    }
   };
 }
 

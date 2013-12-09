@@ -194,7 +194,6 @@ namespace tnp {
    * Returns a newly allocated Horner polynomial, if successful.
    */
   optional<HornerPolynomial*> HornerPolynomial::factorize(const set<Term>& terms) {
-    std::cout << "Factorizing: " << StdPolynomial(terms) << std::endl;
     if (terms.size() == 0)
       return none;
 
@@ -204,35 +203,53 @@ namespace tnp {
     const optional<unsigned int> v = nextVarIn(terms);
 
     if (v) {
-      std::cout << "Var: " << *v << std::endl;
       for (Term t : terms) {
 	addTerm(ps, t / var(*v));
 	addTerm(qs, t % var(*v));
       }
       HornerPolynomial* h = new HornerPolynomial(1, *v);
 
-      std::cout << "== " << *v << " * " << StdPolynomial(ps) << " + " << StdPolynomial(qs) << std::endl;
 
       if (ps.size() > 0)
 	h->hp = factorize(ps);
 
       if (qs.size() > 0)
 	h->hq = factorize(qs);
-
+      
       return optional<HornerPolynomial*>(h);
     }
     
+    if (terms.size() > 0) {
+      int sum = 0;
+      for (Term t : terms)
+	sum += t.factor;
+        
+      return optional<HornerPolynomial*>(new HornerPolynomial(sum));
+    }
     return none;
+  }
+
+  int powi (int base, unsigned int exp) {
+    int res = 1;
+    while (exp) {
+        if (exp & 1)
+            res *= base;
+        exp >>= 1;
+        base *= base;
+    }
+    return res;
   }
 
   double HornerPolynomial::eval(const std::vector<double>& arg) const {
     double res = 0.0;
 
-    if (hp)
+    if (hp) {
       res += hp.get()->eval(arg);
+      res *= factor * powi(arg[variable], power);
+    } else {
+      res = factor * powi(arg[variable], power);
+    }
     
-    res *= factor * arg[variable];
-
     if (hq)
       res += hq.get()->eval(arg);
 
