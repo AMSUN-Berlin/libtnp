@@ -113,11 +113,20 @@ namespace tnp {
 	BOOST_CHECK_EQUAL(test->fixture->stdPoly.eval(test->args), test->fixture->eval(test->args));
       }
 
+      static void testHornerPolynomial(const PolynomialTest* const test) {
+	HornerPolynomial h(test->fixture->stdPoly);
+	const double r1 = h.eval(test->args);
+	const double r2 = test->fixture->eval(test->args);
+	BOOST_CHECK_MESSAGE(r1 == r2, h << " != " << test->fixture->stdPoly << " because " << r1 << " != " << r2 << " at (" << test->args[0] << ", " << test->args[1] << ")");
+      }
+
     public:
       vector<PolynomialTest*> testCases;
 
       PolynomialTestSuite() : test_suite("Polynomials"), testCases(mkTestCases()) {
 	add( BOOST_PARAM_TEST_CASE( &testPolynomial, testCases.begin(), testCases.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testHornerPolynomial, testCases.begin(), testCases.end() ) );
 
 	const std::vector<tnp::StdPolynomial> testPolys = PolynomialTest::stdPolys();
 

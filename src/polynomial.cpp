@@ -234,8 +234,8 @@ namespace tnp {
     return none;
   }
 
-  int powi (int base, unsigned int exp) {
-    int res = 1;
+  double powi (double base, unsigned int exp) {
+    double res = 1;
     while (exp) {
         if (exp & 1)
             res *= base;
