@@ -64,6 +64,9 @@ namespace tnp {
 	vector <StdPolynomial> res;
 	/* x_1²*x_2³ + x_2 */
 	res.push_back(StdPolynomial(var(0)^2)*(var(1)^3) + var(1));
+	/* x_0² + 2 */
+	res.push_back(StdPolynomial(var(0)^2) + 2);
+		      
 	return res;
       }
 

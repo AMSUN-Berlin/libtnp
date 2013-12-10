@@ -103,7 +103,9 @@ namespace tnp {
     StdPolynomial operator%(const Term& term) const;
 
     StdPolynomial operator+(const StdPolynomial& t) const; 
-  
+
+    StdPolynomial operator+(const Term& t) const; 
+
     bool operator==(const StdPolynomial& o) const { return terms == o.terms; }
 
     friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {

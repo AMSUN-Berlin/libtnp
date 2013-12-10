@@ -34,7 +34,7 @@ namespace tnp {
     if (i != set.end()) {
       set.erase(t);
       Term t2(t);
-      t2.factor++;
+      t2.factor += (i->factor);
       set.insert(t2);
     } else
       set.insert(t);
@@ -157,6 +157,11 @@ namespace tnp {
       addTerm(sTerms, t);
     return StdPolynomial(sTerms);
   }
+
+  StdPolynomial StdPolynomial::operator+(const Term& t) const {
+    return (*this) + StdPolynomial(t);
+  }
+
 
   StdPolynomial StdPolynomial::operator/(const Term& t) const {
     set<Term> dTerms;
