@@ -19,7 +19,10 @@
 
 #include <tnp/polynomial.hpp>
 
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+
+#include "polynomialIdentities.hpp"
 
 /**
  * test cases involving polynomial evaluation
@@ -28,6 +31,7 @@ namespace tnp {
   namespace test {
 
     using namespace std;
+    using namespace boost::unit_test;
 
     class PolynomialFixture {
     public:
@@ -53,28 +57,12 @@ namespace tnp {
 
     class PolynomialTest {
 
-      static vector<PolynomialFixture*> fixtures() {
-	PolynomialFixture* p1 = new Polynomial1();
-      
-	vector<PolynomialFixture*> fs({p1});
-	return fs;
-      }
-
       static vector<StdPolynomial> makeStdPolys() {
 	vector <StdPolynomial> res;
 	/* x_1²*x_2³ + x_2 */
 	res.push_back(StdPolynomial(var(0)^2)*(var(1)^3) + var(1));
 	/* x_0² + 2 */
-	res.push_back(StdPolynomial(var(0)^2) + 2);
-		      
-	return res;
-      }
-
-      static vector<vector<double>> inputs() {
-	vector<vector<double>> res;
-	res.push_back(vector<double>{1,1,1,1,1,1});
-	res.push_back(vector<double>{0,1,2,3,4,5});
-	res.push_back(vector<double>{0.1,1.1,.2,.3,.4,.5});
+	res.push_back(StdPolynomial(var(0)^2) + 2);		      
 	return res;
       }
 
@@ -93,7 +81,25 @@ namespace tnp {
       const vector<double> args;
       const PolynomialFixture* const fixture;      
 
-      static vector<PolynomialTest*> testCases() {
+    };
+
+    class PolynomialTestSuite : public test_suite {
+      static vector<PolynomialFixture*> fixtures() {
+	PolynomialFixture* p1 = new Polynomial1();
+      
+	vector<PolynomialFixture*> fs({p1});
+	return fs;
+      }
+
+      static vector<vector<double>> inputs() {
+	vector<vector<double>> res;
+	res.push_back(vector<double>{1,1,1,1,1,1});
+	res.push_back(vector<double>{0,1,2,3,4,5});
+	res.push_back(vector<double>{0.1,1.1,.2,.3,.4,.5});
+	return res;
+      }
+
+      static vector<PolynomialTest*> mkTestCases() {
 	vector<PolynomialTest*> res;
 	for (vector<double> i : inputs()) {
 	  for (PolynomialFixture* f : fixtures()) {
@@ -102,12 +108,37 @@ namespace tnp {
 	}
 	return res;
       }
-    };
 
-    void testPolynomial(const PolynomialTest* const test) {
-      BOOST_CHECK_EQUAL(test->fixture->stdPoly.eval(test->args), test->fixture->eval(test->args));
-      delete test->fixture;
-    }
+      static void testPolynomial(const PolynomialTest* const test) {
+	BOOST_CHECK_EQUAL(test->fixture->stdPoly.eval(test->args), test->fixture->eval(test->args));
+      }
+
+    public:
+      vector<PolynomialTest*> testCases;
+
+      PolynomialTestSuite() : test_suite("Polynomials"), testCases(mkTestCases()) {
+	add( BOOST_PARAM_TEST_CASE( &testPolynomial, testCases.begin(), testCases.end() ) );
+
+	const std::vector<tnp::StdPolynomial> testPolys = PolynomialTest::stdPolys();
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyEquality, testPolys.begin(), testPolys.end() ) );
+  
+	add( BOOST_PARAM_TEST_CASE( &testPolyAdditionWithZero, testPolys.begin(), testPolys.end() ) );
+  
+	add( BOOST_PARAM_TEST_CASE( &testPolyMultiplicationWithConstantOne, testPolys.begin(), testPolys.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyMultiplicationWithConstantTwo, testPolys.begin(), testPolys.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyMultiplicationWithOne, testPolys.begin(), testPolys.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyMultiplicationWithTwo, testPolys.begin(), testPolys.end() ) );
+      }
+
+      ~PolynomialTestSuite() {
+	for (PolynomialTest* t : testCases)
+	  delete t;
+      }
+    };
 
   }
 }
