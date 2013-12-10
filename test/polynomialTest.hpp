@@ -55,6 +55,16 @@ namespace tnp {
       }
     };
 
+    class Polynomial2 : public PolynomialFixture {
+      /* x_1²*x_2³ + x_3 + 42 */
+    public:
+      Polynomial2() : PolynomialFixture(StdPolynomial((var(0)^2)*(var(1)^3)) + var(2) + 42) {}
+    
+      virtual double eval(const vector<double>& args) const {
+	return args[0] * args[0] * args[1]*args[1]*args[1] + args[2] + 42;
+      }
+    };
+
     class PolynomialTest {
 
       static vector<StdPolynomial> makeStdPolys() {
@@ -86,8 +96,9 @@ namespace tnp {
     class PolynomialTestSuite : public test_suite {
       static vector<PolynomialFixture*> fixtures() {
 	PolynomialFixture* p1 = new Polynomial1();
+	PolynomialFixture* p2 = new Polynomial2();
       
-	vector<PolynomialFixture*> fs({p1});
+	vector<PolynomialFixture*> fs({p1, p2});
 	return fs;
       }
 
