@@ -45,9 +45,13 @@ namespace tnp {
   }
 
   double Term::eval(const std::vector<double>& arg) const {
+    return eval(arg, 1);
+  }
+
+  double Term::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = factor;
     for(auto e : monomial) {
-      res *= pow(arg[std::get<0>(e)], std::get<1>(e));
+      res *= pow(arg[std::get<0>(e) * width], std::get<1>(e));
     }
     return res;
   }
@@ -151,17 +155,17 @@ namespace tnp {
     return StdPolynomial(pTerms);
   }
 
+  StdPolynomial& StdPolynomial::operator+=(const StdPolynomial& o) {
+    for (Term t : o.terms)
+      addTerm(terms, t);    
+    return *this;
+  }
+
   StdPolynomial StdPolynomial::operator+(const StdPolynomial& t) const {
-    set<Term> sTerms(terms);
-    for (Term t : t.terms)
-      addTerm(sTerms, t);
-    return StdPolynomial(sTerms);
+    StdPolynomial p(terms);
+    p += t;
+    return p;
   }
-
-  StdPolynomial StdPolynomial::operator+(const Term& t) const {
-    return (*this) + StdPolynomial(t);
-  }
-
 
   StdPolynomial StdPolynomial::operator/(const Term& t) const {
     set<Term> dTerms;
@@ -178,9 +182,13 @@ namespace tnp {
   }
       
   double StdPolynomial::eval(const std::vector<double>& arg) const {
+    return eval(arg, 1);
+  }
+
+  double StdPolynomial::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = 0.0;
     for (Term t : terms)
-      res += t.eval(arg);
+      res += t.eval(arg, width);
     return res;
   }
 
@@ -246,17 +254,21 @@ namespace tnp {
   }
 
   double HornerPolynomial::eval(const std::vector<double>& arg) const {
+    return eval(arg, 1);
+  }
+
+  double HornerPolynomial::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = 0.0;
 
     if (hp) {
-      res += hp.get()->eval(arg);
-      res *= factor * powi(arg[variable], power);
+      res += hp.get()->eval(arg, width);
+      res *= factor * powi(arg[variable*width], power);
     } else {
-      res = factor * powi(arg[variable], power);
+      res = factor * powi(arg[variable*width], power);
     }
     
     if (hq)
-      res += hq.get()->eval(arg);
+      res += hq.get()->eval(arg, width);
 
     return res;
   }

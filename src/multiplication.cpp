@@ -97,6 +97,7 @@ namespace tnp {
     return cacheVector();
   }
   
+  /*
   vector<Product> Multiplication::compileDerSum(const unsigned int order) {
     vector<Product> sum;
 
@@ -104,10 +105,10 @@ namespace tnp {
       const Multiplication smaller = cacheVector()[order - 1];
       
       for (Product p : smaller.partialDerSum) {
-	/* D(a) * I(b) */
+	// D(a) * I(b)
 	sum.push_back(Product(p.factor, make_tuple(get<0>(p.keys) + 1, get<1>(p.keys), get<2>(p.keys))));
 
-	/* I(a) * D(b) */
+        // I(a) * D(b)
 	sum.push_back(Product(p.factor, make_tuple(get<0>(p.keys), get<1>(p.keys) + 1, get<2>(p.keys))));
       }      
     } else {
@@ -125,13 +126,13 @@ namespace tnp {
     if (order > 0) {
       const Multiplication smaller = cacheVector()[order - 1];
 
-      /* D|[a*b]| = D(a) * I(b) + I(a) * D(b) */      
+      // D|[a*b]| = D(a) * I(b) + I(a) * D(b)
       
       for (Product p : smaller.valueSum) {
-	/* D(a) * I(b) */
+	// D(a) * I(b)
 	sum.push_back(Product(p.factor, make_tuple(get<0>(p.keys) + 1, get<1>(p.keys), 0)));
 	
-	/* I(a) * D(b) */
+	// I(a) * D(b)
 	sum.push_back(Product(p.factor, make_tuple(get<0>(p.keys), get<1>(p.keys) + 1, 0)));
       }            
     } else {
@@ -161,5 +162,6 @@ namespace tnp {
     }
     return array;
   }
+*/
 
 }

@@ -10,6 +10,7 @@ set(hdrs ${hdrs_dir}/tnp.hpp)
 set(srcs ${srcs_dir}/tnp.cpp
          ${srcs_dir}/npnumber.cpp
 	 ${srcs_dir}/multiplication.cpp
+	 ${srcs_dir}/composition.cpp
 	 ${srcs_dir}/examples.cpp
 	 ${srcs_dir}/polynomial.cpp
   )

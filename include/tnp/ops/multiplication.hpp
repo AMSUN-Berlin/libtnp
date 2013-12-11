@@ -51,8 +51,8 @@ namespace tnp {
   class Multiplication { 
 
     const unsigned int order;
-    const vector<Product> valueSum;
-    const vector<Product> partialDerSum;
+    //const vector<Product> valueSum;
+    //const vector<Product> partialDerSum;
     const vector<double> binomial;
 
     void evalPartialDerivative(const vector<double>& a, const vector<double>& b,
@@ -62,15 +62,21 @@ namespace tnp {
     void evalValue(const vector<double>& a, const vector<double>& b,
 		   vector<double>& target, const unsigned int width) const;
 
+    /*
     static vector<Product> compileValueSum(const unsigned int order);
 
     static vector<Product> compileDerSum(const unsigned int order);
 
-    static vector<double> compileBinomial(const unsigned int order);
-
     static vector<Product> merge(const vector<Product>& products);    
+    */
 
   public:
+    
+    /*
+     * Compiles a vector containing all binomials \frac{k}{n} \forall k \in 1 \ldots n
+     */
+    static vector<double> compileBinomial(const unsigned int order);
+
     /**
      * return the cacheVector without initialisation
      */
@@ -92,7 +98,7 @@ namespace tnp {
       }
     }
         
-    Multiplication(unsigned int o) : order(o), valueSum(compileValueSum(o)), partialDerSum(compileDerSum(o)), 
+    Multiplication(unsigned int o) : order(o), //valueSum(compileValueSum(o)), partialDerSum(compileDerSum(o)), 
 				     binomial(compileBinomial(o)) {}
 
     void apply(const vector<double>& a, const vector<double>& b,

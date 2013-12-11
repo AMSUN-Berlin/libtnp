@@ -53,6 +53,8 @@ namespace tnp {
 
     inline double eval(const vector<double>& arg) const;
 
+    inline double eval(const vector<double>& arg, const unsigned int width) const;
+
     Term operator ^(unsigned int p) const;
 
     bool operator <(const Term& o) const;
@@ -94,7 +96,10 @@ namespace tnp {
 
     StdPolynomial(const set<Term>& t) : terms(t) {}
 
+    StdPolynomial(const unsigned int i) : terms() { addTerm(terms, Term(i)); }
     double eval(const vector<double>& arg) const;
+
+    double eval(const vector<double>& arg, const unsigned int width) const;
 
     StdPolynomial operator*(const StdPolynomial& f) const;
 
@@ -104,9 +109,9 @@ namespace tnp {
 
     StdPolynomial operator+(const StdPolynomial& t) const; 
 
-    StdPolynomial operator+(const Term& t) const; 
-
     bool operator==(const StdPolynomial& o) const { return terms == o.terms; }
+
+    StdPolynomial& operator+=(const StdPolynomial& o);
 
     friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {
       char comma[2] = {'\0', '\0'};
@@ -170,6 +175,8 @@ namespace tnp {
     }
 
     double eval(const vector<double>& arg) const;    
+
+    double eval(const vector<double>& arg, const unsigned int width) const;    
 
     friend std::ostream& operator<<(std::ostream& out, const HornerPolynomial& p) {
       out << "x_" << p.variable << "^" << p.power;
