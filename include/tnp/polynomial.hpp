@@ -31,6 +31,8 @@ namespace tnp {
   using namespace boost;
   using namespace std;
 
+  double powi (double base, unsigned int exp);
+
   class StdPolynomial;
 
   /**
@@ -71,6 +73,10 @@ namespace tnp {
 
     bool operator==(const Term& o) const { return factor == o.factor && monomial == o.monomial; }
 
+    Term partialDerivative(unsigned int var) const;
+
+    unsigned int variables() const { return monomial.size() > 0 ? monomial.rbegin()->first + 1 : 0; }
+
     friend std::ostream& operator<<(std::ostream& out, const Term& t) {
       out << t.factor << " * (";
       for (auto e : t.monomial)
@@ -97,6 +103,9 @@ namespace tnp {
     StdPolynomial(const set<Term>& t) : terms(t) {}
 
     StdPolynomial(const unsigned int i) : terms() { addTerm(terms, Term(i)); }
+
+    unsigned int variables() const { return terms.empty() ? 0 : terms.begin()->variables(); }
+
     double eval(const vector<double>& arg) const;
 
     double eval(const vector<double>& arg, const unsigned int width) const;
@@ -112,6 +121,8 @@ namespace tnp {
     bool operator==(const StdPolynomial& o) const { return terms == o.terms; }
 
     StdPolynomial& operator+=(const StdPolynomial& o);
+
+    StdPolynomial partialDerivative(const unsigned int var) const;
 
     friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {
       char comma[2] = {'\0', '\0'};
@@ -157,6 +168,10 @@ namespace tnp {
       }
     }
 
+    HornerPolynomial(const HornerPolynomial& o) : variable(o.variable), power(o.power), factor(o.factor), 
+						  hp(o.hp ? optional<HornerPolynomial*>(new HornerPolynomial(**o.hp)) : none), 
+						  hq(o.hq ? optional<HornerPolynomial*>(new HornerPolynomial(**o.hq)) : none) {}
+
     HornerPolynomial() : variable(0), power(0), factor(0) {}
     
     HornerPolynomial(int f) : variable(0), power(0), factor(f) {}
@@ -177,6 +192,8 @@ namespace tnp {
     double eval(const vector<double>& arg) const;    
 
     double eval(const vector<double>& arg, const unsigned int width) const;    
+
+    double evalDer(const vector<double>& arg, const unsigned int der, const unsigned int width) const;
 
     friend std::ostream& operator<<(std::ostream& out, const HornerPolynomial& p) {
       out << "x_" << p.variable << "^" << p.power;

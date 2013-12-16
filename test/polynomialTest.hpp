@@ -18,11 +18,15 @@
  */
 
 #include <tnp/polynomial.hpp>
+#include <tnp/npnumber.hpp>
 
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 
 #include "polynomialIdentities.hpp"
+#include "prettyprint.hpp"
+#include "numberGenerator.hpp"
+#include "nppolynomial.hpp"
 
 /**
  * test cases involving polynomial evaluation
@@ -66,17 +70,19 @@ namespace tnp {
     };
 
     class PolynomialTest {
-
+    public:
       static vector<StdPolynomial> makeStdPolys() {
 	vector <StdPolynomial> res;
 	/* x_1²*x_2³ + x_2 */
 	res.push_back(StdPolynomial(var(0)^2)*(var(1)^3) + var(1));
 	/* x_0² + 2 */
 	res.push_back(StdPolynomial(var(0)^2) + 2);		      
+	/* x_0^2 + x_1^2*x_2 + x_2^4 */
+	res.push_back(StdPolynomial((var(0)^2) + (var(1)^2)*var(2) + (var(2)^4)));
+	
 	return res;
       }
 
-    public:
       static const vector<StdPolynomial>& stdPolys() {
 	static vector <StdPolynomial> res(makeStdPolys());
 	return res;
@@ -158,6 +164,71 @@ namespace tnp {
 	for (PolynomialTest* t : testCases)
 	  delete t;
       }
+    };
+
+    class PolynomialFunctionTest {
+    public:
+      NPPolynomial p;
+      vector<double> dArgs;
+
+      PolynomialFunctionTest(const StdPolynomial& stdP, vector<double> args) : p(stdP), dArgs(args) {}
+
+      /* evaluate the given polynomial using AD and return value and partial derivatives */
+      NPNumber eval() const {
+	vector<NPNumber> args;
+	for (int i = 0; i < dArgs.size(); i++) {
+	  args.push_back(NPNumber(dArgs.size() + 1, variable(dArgs[i], i+1, dArgs.size()+1)));
+	}
+	return p.eval(args);
+      }
+
+      /* evaluate the given polynomial directly */
+      double evalValue() const {
+	return p.poly.eval(dArgs);
+      }
+
+      /* evaluate partial derivative using symbolic differentiation */
+      double evalPartialDerivative(unsigned int var) const {
+	return p.poly.partialDerivative(var).eval(dArgs);
+      }
+    };
+
+    class PolynomialFunctionTestSuite : public test_suite {
+      
+      static void testPolynomialFunction(const PolynomialFunctionTest& test) {
+	const NPNumber npRes = test.eval();
+
+	const double res = test.evalValue();
+	BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(0, 0), 
+							      boost::test_tools::percent_tolerance(1e-10)), 
+			    "Testing value: " << (test.p.poly) << "\n" <<
+			    "argument: " << test.dArgs << " expected: " << res << "\n" <<
+			    "result: " << npRes.der(0, 0) << "\n") ;
+      
+	for (int v = 0; v < test.dArgs.size(); v++) {
+	  const double res = test.evalPartialDerivative(v);
+	  BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(v+1, 0), 
+								boost::test_tools::percent_tolerance(1e-10)), 
+			      "Testing partial derivative: " << (test.p.poly) << "\n" <<
+			      "Derivation: " << test.p.poly.partialDerivative(v) << "\n" <<
+			      "argument: " << test.dArgs << " expected: " << res << "\n" <<
+			      "result: " << npRes.der(v,0) << "\n") ;
+	}
+      }
+
+    public:
+      vector<PolynomialFunctionTest> testCases;
+
+      PolynomialFunctionTestSuite() : test_suite("Polynomial functions") {
+	for (StdPolynomial p : PolynomialTest::makeStdPolys()) {
+	  for (vector<double> a : generateTestNumbers(p.variables())) {
+	    testCases.push_back(PolynomialFunctionTest(p, a));
+	  }
+	}
+
+	add( BOOST_PARAM_TEST_CASE( &testPolynomialFunction, testCases.begin(), testCases.end() ) );
+      }
+           
     };
 
   }

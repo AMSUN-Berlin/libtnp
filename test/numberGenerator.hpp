@@ -56,7 +56,8 @@ namespace tnp {
 	for (int o : testOrders) {	  
 	  /* always test on constants */
 	  for (double d : constantsField) {
-	    v.push_back(NPNumber(p, o, d));
+	    const NPNumber nr(p, o, d);
+	    v.push_back(nr);
 	  }
 	  
 	  const unsigned int s = (p+1)*(o+1);
@@ -75,6 +76,25 @@ namespace tnp {
     const std::vector<NPNumber>& testNumbers() {
       static const std::vector<NPNumber> nums(makeNumbers());
       return nums;
+    }
+
+    std::vector<std::vector<double>> generateTestNumbers(int amount) {
+      const std::vector<double> constantsField({
+	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 
+	  0.25, 1.25, 2.25, 3.25, 4.25, 5.25, 6.25, 7.25, 8.25, 9.25, 10.25 	    
+      });
+
+      std::vector<std::vector<double>> ret;
+      
+      for (int i = 0; i < constantsField.size() / amount; i++) {
+	std::vector<double> r;
+	for (int j = 0; j < amount; j++) 
+	  r.push_back(constantsField[i * amount + j]);
+	
+	ret.push_back(r);
+      }
+
+      return ret;
     }
   }
 }

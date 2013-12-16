@@ -31,6 +31,14 @@ namespace tnp {
     return v;
   }
 
+  const std::vector<double> variable(double val, unsigned int n, unsigned int size) {
+    std::vector<double> v(size);
+    v[0] = val;
+    v[n] = 1.0;
+    return v;
+  }
+
+
   NPNumber NPNumber::plus(const NPNumber& o) const {
     vector<double> c(values.size());
     transform(values.begin(),values.end(),o.values.begin(),c.begin(), std::plus<double>());
@@ -71,5 +79,58 @@ namespace tnp {
     return NPNumber(width, c);
   }
 
+  NPNumber NPNumber::pow(unsigned int power) const {
+    vector<double> c(values.size());
+    vector<double> f(_order + 2);
+    
+    int start = _order + 1;
+    const int rest = power - (_order + 1);
+
+    if (rest > 0) {
+      f[start] = powi(values[0], rest);
+    } else {
+      start += rest;
+      f[start] = 1.0;
+    }
+    
+    for (unsigned int i = _order + 1; i > start; i--) {
+	f[i] = 0.0;
+    }
+      
+    for (int i = start-1; i >= 0; i--)
+      f[i] = f[i+1] * values[0];  
+
+    int n = power;
+    for (unsigned int i = 1; i <= start; i++) {
+      f[i] *= n;
+      n *= power - i;
+    }
+
+    comp().apply(f, values, c, width);
+    return NPNumber(width, c);
+  }
+
+  NPNumber NPNumber::operator*=(const NPNumber& o) {
+    vector<double> c(values);
+    mult().apply(c, o.values, values, width);
+    return *this;
+  }
+
+  NPNumber NPNumber::operator*=(const double o) {
+    for (int i = 0; i < values.size(); i++)
+      values[i] *= o;
+    return *this;
+  }
+
+  NPNumber NPNumber::operator+=(const double o) {
+    values[0] += o;
+    return *this;
+  }
+
+  NPNumber NPNumber::operator+=(const NPNumber& o) {
+    for (int i = 0; i < values.size(); i++)
+      values[i] += o.values[i];
+    return *this;
+  }  
 
 }

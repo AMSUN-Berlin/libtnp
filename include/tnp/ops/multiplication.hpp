@@ -91,11 +91,11 @@ namespace tnp {
      */
     static vector<Multiplication>& cacheVectorInitialized(const unsigned int upTo);
 
-    static void ensureExistance(const unsigned int order) {
+    static Multiplication& ensureExistance(const unsigned int order) {
       if (cacheVector().size() <= order) {
-	cacheVectorInitialized(order-1);
-	cacheVector().push_back(Multiplication(order));
+	cacheVectorInitialized(order+1);
       }
+      return cacheVector()[order];
     }
         
     Multiplication(unsigned int o) : order(o), //valueSum(compileValueSum(o)), partialDerSum(compileDerSum(o)), 

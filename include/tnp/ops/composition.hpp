@@ -22,6 +22,8 @@
 #include <vector>
 #include <tuple>
 
+#include <boost/ptr_container/ptr_vector.hpp>
+
 #include <tnp/ops/multiplication.hpp>
 #include <tnp/polynomial.hpp>
 #include <boost/math/special_functions/factorials.hpp>
@@ -29,7 +31,8 @@
 namespace tnp {
   namespace ops {
     using namespace std;
-  
+    using namespace boost::ptr_container;
+
     /**
      * Efficient implementation of Composition based on pre-computed polynomials
      */
@@ -42,11 +45,15 @@ namespace tnp {
 
       const vector<double> binomial;
 
-      const vector<HornerPolynomial*> bell_polynomials;    
+      const ptr_vector<HornerPolynomial> bell_polynomials;    
 
-      static const StdPolynomial& convolute(unsigned int k, unsigned int n) {
-	Composition& comp = ensureExistance(n);
-	return comp.getConvolute(k); 
+      const StdPolynomial& convolute(unsigned int k, unsigned int n) {
+	if (n < order) {
+	  Composition& comp = ensureExistance(n);
+	  return comp.getConvolute(k);
+	} else {
+	  return getConvolute(k);
+	}
       }
 
       const StdPolynomial& getConvolute(unsigned int k) {
@@ -67,8 +74,8 @@ namespace tnp {
 	}
       }
 
-      static vector<HornerPolynomial*> compilePolynomials(const unsigned int order) {
-	vector<HornerPolynomial*> b;
+      ptr_vector<HornerPolynomial> compilePolynomials(const unsigned int order) {
+	ptr_vector<HornerPolynomial> b;
 	for (unsigned int k = 1; k <= order; k++)
 	  b.push_back(new HornerPolynomial(convolute(k, order) / ((unsigned int) boost::math::factorial<double>(k))));
 	return b;
@@ -97,8 +104,7 @@ namespace tnp {
 
       static Composition& ensureExistance(const unsigned int order) {
 	if (cacheVector().size() <= order) {
-	  cacheVectorInitialized(order-1);
-	  cacheVector().push_back(Composition(order));
+	  cacheVectorInitialized(order);
 	}
 	return cacheVector()[order];
       }
@@ -106,11 +112,6 @@ namespace tnp {
       Composition(unsigned int o) : order(o), binomial(Multiplication::compileBinomial(o)), 
 				    bell_polynomials(compilePolynomials(o)) {}
       
-      ~Composition() {
-	for (HornerPolynomial* p : bell_polynomials)
-	  delete p;
-      }
-
       void apply(const vector<double>& a, const vector<double>& b,
 		 vector<double>& target, unsigned int width) const;
     };

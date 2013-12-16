@@ -24,39 +24,52 @@
 #include <iterator>
 
 #include <tnp/ops/multiplication.hpp>
+#include <tnp/ops/composition.hpp>
 
 namespace tnp {
+  
+  using namespace tnp::ops;
 
+  /**
+   * return a constant with value val (i.e. all derivatives = 0)
+   */
   const std::vector<double> constant(double val, unsigned int size);
+
+  /**
+   * return the n-th variable, with value val 
+   */
+  const std::vector<double> variable(double val, unsigned int n, unsigned int size);
 
   /**
    * An AD-number of arbitrary width and depth
    */
   class NPNumber {
-
-    inline const Multiplication& mult() const {
-      return Multiplication::cacheVector()[_order];
-    }
-
     unsigned int _order;
     unsigned int width;
     std::vector<double> values;    
+
+    inline const Composition& comp() const { return Composition::cacheVector()[_order]; }
+    inline const Multiplication& mult() const { return Multiplication::cacheVector()[_order]; }
+
   public:
 
     NPNumber(unsigned int params, unsigned int order) : _order(order), width(params+1), 
 							values(width * order+1, 0.0) {
-      Multiplication::ensureExistance(_order);
+      Composition::ensureExistance(_order) ;
+      Multiplication::ensureExistance(_order) ;
     }
 							
     NPNumber(unsigned int width, const std::vector<double>& values) : _order(values.size() / width - 1), 
 								      width(width), 
-								      values(values) {
-      Multiplication::ensureExistance(_order);
+								      values(values)  {
+      Composition::ensureExistance(_order) ;
+      Multiplication::ensureExistance(_order) ;
     }
-
+    
     NPNumber(unsigned int params, unsigned int order, double value) : _order(order), width(params+1),
 								      values(constant(value, width * (order+1))) {
-      Multiplication::ensureExistance(_order);
+      Composition::ensureExistance(_order) ;
+      Multiplication::ensureExistance(_order) ;
     }
     
     ~NPNumber() {}
@@ -92,6 +105,10 @@ namespace tnp {
       return plus(o);
     }
 
+    NPNumber operator+=(const NPNumber& o);
+
+    NPNumber operator+=(const double o);
+
     NPNumber operator+(const double o) const {
       return plus(o);
     }
@@ -112,10 +129,16 @@ namespace tnp {
       return times(f);
     }
 
+    NPNumber operator*=(const NPNumber& o);
+
+    NPNumber operator*=(const double o);
+
     NPNumber operator/(const NPNumber& o) const {
       //TODO
       return *this;
     }
+
+    NPNumber pow(unsigned int power) const;
     
     NPNumber asParameter(unsigned int param) const {
       vector<double> args(values);

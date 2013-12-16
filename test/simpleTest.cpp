@@ -38,9 +38,9 @@ init_unit_test_suite( int argc, char* argv[] ) {
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testMultiplicationWithTwo, testNumbers().begin(), testNumbers().end() ) );
   
-  framework::master_test_suite().
+  /*  framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testManyMultiplicationsWithOne, testDimensions.begin(), testDimensions.end() ) );
-
+  */
   const std::vector<UnaryAnalyticFunctionTest>& analyticTestCases = UnaryAnalyticFunctionTest::testCases();
 
   framework::master_test_suite().
@@ -48,6 +48,9 @@ init_unit_test_suite( int argc, char* argv[] ) {
 
   PolynomialTestSuite* polynomialSuite = new PolynomialTestSuite();
   framework::master_test_suite().add( polynomialSuite );
+
+  PolynomialFunctionTestSuite* polynomialFunctionSuite = new PolynomialFunctionTestSuite();
+  framework::master_test_suite().add( polynomialFunctionSuite );
   
   return 0;
 }

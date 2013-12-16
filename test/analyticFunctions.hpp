@@ -28,6 +28,7 @@
 
 #include "prettyprint.hpp"
 #include "numberGenerator.hpp"
+#include "nppolynomial.hpp"
 
 namespace tnp {
   namespace test {
@@ -129,18 +130,17 @@ namespace tnp {
 
       NPNumber eval(const unsigned int order, const double arg) const {
 	const NPNumber b = NPNumber::freeVar(0, order, arg);
-	NPNumber n(0, order, 1.0);
 	
 	if (power > 0) {
-	  //TODO: use ^ operator
-	  for (int i = 0; i < power; ++i)
-	    n = n * b;
+	  const NPNumber n(b.pow(power) * factor);
+	  return n;
 	} else {
+	  NPNumber n(0, order, 1.0);
 	  //TODO: use ^ operator
 	  for (int i = 0; i < power; ++i)
 	    n = n / b;
+	  return n * factor;
 	}
-	return n * factor;
       }
       
       double eval(const double arg) const {
@@ -151,7 +151,7 @@ namespace tnp {
 	return o << "{f(x) = " << factor << " * x^" << power << "}";
       }
     };
-    
+
     const vector<UnaryAnalyticFunction*> testFunctions() {
       static Polynom p33(3,3);
       static Polynom p21(3,3);
@@ -186,12 +186,13 @@ namespace tnp {
 	return tests;
       }
 
-      const int order;
-      const double arg;
+      int order;
+      double arg;
       UnaryAnalyticFunction* fun;
 
       UnaryAnalyticFunctionTest(UnaryAnalyticFunction* f, int o, double a) : order(o), arg(a), fun(f) {}
     };
+
 
     void testUnaryAnalyticFunction(const UnaryAnalyticFunctionTest& test) {
       const NPNumber npRes = test.fun->eval(test.order, test.arg);
@@ -209,6 +210,7 @@ namespace tnp {
 	f = f->derivative();
       }
     }
+
   }
 }
 

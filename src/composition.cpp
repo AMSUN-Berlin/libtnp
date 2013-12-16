@@ -27,11 +27,44 @@ namespace tnp {
     void Composition::evalValue(const vector<double>& f, const vector<double>& a,
 				vector<double>& target, const unsigned int width) const {
       target[order*width] = 0.0;
-
-      for (int k = 0; k <= order; k++)
-	target[order*width] += f[k] * bell_polynomials[k]->eval(a, width);
+      
+      for (int k = 0; k < order; k++)
+	target[order*width] += f[k+1] * bell_polynomials[k].eval(a, width);
     }
 
+    inline void Composition::evalPartialDerivative(const vector<double>& f, const vector<double>& a,
+						   vector<double>& target,
+						   const unsigned int width, const unsigned int j) const {
+      target[order * width + j] = 0.0;
+      for (int k = 0; k < order; k++) 
+	target[order*width + j] += target[(k+1)*width] * a[j] * bell_polynomials[k].eval(a, width) + 
+	  target[k*width] * bell_polynomials[k].evalDer(a, j, width);
+      
+    }
 
+    void Composition::apply(const vector<double>& f, const vector<double>& a,
+			    vector<double>& target, unsigned int width) const {
+	const unsigned int params = width - 1;
+      if (order > 0) {
+	cacheVector()[order-1].apply(f, a, target, width);
+	evalValue(f, a, target, width);
+
+	for (int j = 1; j <= params; ++j) {
+	  evalPartialDerivative(f, a, target, width, j);
+	}
+      } else {
+	target[0] = f[0];
+	for (int j = 1; j <= params; ++j) {
+	  target[order*width + j] = f[1] * a[order*width+j];
+	}
+      }
+    }
+
+    vector<Composition>& Composition::cacheVectorInitialized(const unsigned int upTo) {
+      while (upTo >= cacheVector().size()) {
+	cacheVector().push_back(Composition(cacheVector().size()));      
+      }
+      return cacheVector();
+    }
   }
 }

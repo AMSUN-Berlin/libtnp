@@ -32,9 +32,10 @@ namespace tnp {
 
     auto i = set.find(t);
     if (i != set.end()) {
-      set.erase(t);
+      const unsigned int factor = i->factor;
       Term t2(t);
-      t2.factor += (i->factor);
+      set.erase(t);
+      t2.factor += (factor);
       set.insert(t2);
     } else
       set.insert(t);
@@ -140,6 +141,23 @@ namespace tnp {
     return 0;
   }
 
+  Term Term::partialDerivative(unsigned int var) const {
+    auto x = monomial.find(var);
+    if (x == monomial.end()) {
+      return Term(); // == zero
+    } else {
+      Monomial der(monomial);
+      const unsigned int deg = get<1>(*x);
+      if (deg == 1) {
+	der.erase(var);
+	return Term(factor, der);
+      } else {
+	der[var] = deg - 1;
+	return Term(factor * deg, der);
+      }      
+    }
+  }
+
   Term var(unsigned int idx) {
     return Term(1, Monomial({{idx, 1}}));
   }  
@@ -192,6 +210,13 @@ namespace tnp {
     return res;
   }
 
+  StdPolynomial StdPolynomial::partialDerivative(const unsigned int var) const {
+    set<Term> dterms;
+    for (Term t : terms)
+      addTerm(dterms, t.partialDerivative(var));
+    return dterms;
+  }
+
   /* return the first variable, if any exists */
   optional<unsigned int> nextVarIn(const set<Term>& terms) {
     if (terms.size() > 0) {
@@ -221,7 +246,6 @@ namespace tnp {
 	addTerm(qs, t % var(*v));
       }
       HornerPolynomial* h = new HornerPolynomial(1, *v);
-
 
       if (ps.size() > 0)
 	h->hp = factorize(ps);
@@ -272,5 +296,24 @@ namespace tnp {
 
     return res;
   }
+
+  double HornerPolynomial::evalDer(const vector<double>& arg, const unsigned int der, const unsigned int width) const {
+    double res = 0.0;
+    if (hp) {      
+      res += hp.get()->eval(arg, width); // p
+      res *= arg[variable*width+der]; // d g_i / dx
+      res *= (factor + power) * powi(arg[variable*width], power - 1); // d ( f*g_i^p ) / dx 
+    
+      double sres = hp.get()->evalDer(arg, der, width);
+      sres *= factor * powi(arg[variable*width], power);
+      res += sres;
+    }
+
+    if (hq)
+      res += hq.get()->evalDer(arg, der, width);
+
+    return res;
+  };
+
 
 }
