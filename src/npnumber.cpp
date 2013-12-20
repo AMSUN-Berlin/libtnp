@@ -20,6 +20,7 @@
 #include <tnp/npnumber.hpp>
 #include <functional>
 #include <algorithm>
+#include <cmath>
 
 #include "prettyprint.hpp"
 
@@ -27,14 +28,14 @@ using namespace std;
 
 namespace tnp {
 
-  const std::vector<double> constant(double val, unsigned int size) {
-    std::vector<double> v(size);
+  const vector<double> constant(double val, unsigned int size) {
+    vector<double> v(size);
     v[0] = val;
     return v;
   }
 
-  const std::vector<double> variable(double val, unsigned int n, unsigned int size) {
-    std::vector<double> v(size);
+  const vector<double> variable(double val, unsigned int n, unsigned int size) {
+    vector<double> v(size);
     v[0] = val;
     v[n] = 1.0;
     return v;
@@ -81,33 +82,37 @@ namespace tnp {
     return NPNumber(width, c);
   }
 
-  NPNumber NPNumber::pow(unsigned int power) const {
-    vector<double> c(values.size());
+  NPNumber NPNumber::pow(int n) const {
+    // create the power function value and derivatives
+    // [x^n, nx^(n-1), n(n-1)x^(n-2), ... ]
     vector<double> f(_order + 2);
-    
-    int start = _order + 1;
-    const int rest = power - (_order + 1);
 
-    if (rest > 0) {
-      f[start] = powi(values[0], rest);
+    if (n >= 0) {
+      // strictly positive power
+      const int maxOrder = min(_order + 1, (unsigned int)n);
+      double xk = std::pow(values[0], n - maxOrder);
+      for (int i = maxOrder; i > 0; --i) {
+	f[i] = xk;
+	xk *= values[0];
+      }
+      f[0] = xk;
     } else {
-      start += rest;
-      f[start] = 1.0;
-    }
-    
-    for (unsigned int i = _order + 1; i > start; i--) {
-	f[i] = 0.0;
-    }
-      
-    for (int i = start-1; i >= 0; i--)
-      f[i] = f[i+1] * values[0];  
-
-    int n = power;
-    for (unsigned int i = 1; i <= start; i++) {
-      f[i] *= n;
-      n *= power - i;
+      // strictly negative power
+      const double inv = 1.0 / values[0];
+      double xk = std::pow(inv, -n);
+      for (int i = 0; i <= _order + 1; ++i) {
+	f[i] = xk;
+	xk *= inv;
+      }
     }
 
+    double coefficient = n;
+    for (int i = 1; i <= _order + 1; ++i) {
+      f[i] *= coefficient;
+      coefficient *= n - i;
+    }
+
+    vector<double> c(values.size());
     comp().apply(f, values, c, width);
     return NPNumber(width, c);
   }

@@ -37,6 +37,8 @@ namespace tnp {
 
     NPNumber multiplyLoop(NPNumber result, unsigned int n);
 
+    NPNumber squareLoop(NPNumber result, unsigned int n);
+
     void checkClose(const NPNumber& expected, const NPNumber& actual) {
       BOOST_CHECK_EQUAL(expected.params(), actual.params());
       BOOST_CHECK_EQUAL(expected.order(), actual.order());
@@ -71,6 +73,13 @@ namespace tnp {
       BOOST_CHECK_EQUAL(result, one);
     }
 
+    void testManySquaresOfOne(const std::pair<unsigned int, unsigned int> sizes) {
+      const NPNumber one(sizes.first, sizes.second, 1.0);
+      NPNumber result = squareLoop(one, MANY_ITERATIONS);
+
+      BOOST_CHECK_EQUAL(result, one);
+    }
+
     void testMultiplicationWithTwo(const NPNumber& in) {
       const NPNumber two(in.params(), in.order(), 2.0);      
       BOOST_CHECK_EQUAL(in * two, in + in);
@@ -92,6 +101,27 @@ namespace tnp {
     void testSelfDivision(const NPNumber& in) {
       const NPNumber one(in.params(), in.order(), 1.0);      
       BOOST_CHECK_EQUAL(one, in / in);
+    }
+
+    void testPowOne(const NPNumber& in) {
+      BOOST_CHECK_EQUAL(in.pow(1), in);
+    }
+
+    void testPowZero(const NPNumber& in) {
+      const NPNumber one(in.params(), in.order(), 1.0);      
+      BOOST_CHECK_EQUAL(in.pow(0), one);
+    }
+
+    void testSquare(const NPNumber& in) {
+      BOOST_CHECK_MESSAGE(in.pow(2) == in*in,
+			  "\nExpected pow(2) (" << in << ") to be\n" <<
+			  in * in << "\n" <<
+			  "but got: " << in.pow(2) << "\n"
+			  );
+    }
+
+    void testCube(const NPNumber& in) {
+      BOOST_CHECK_EQUAL(in.pow(3), in*in*in);
     }
   
   }

@@ -47,7 +47,7 @@ namespace tnp {
 
       const ptr_vector<HornerPolynomial> bell_polynomials;    
 
-      const StdPolynomial& convolute(unsigned int k, unsigned int n) {
+      const StdPolynomial& convolute(unsigned int n, unsigned int k) {
 	if (n < order) {
 	  Composition& comp = ensureExistance(n);
 	  return comp.getConvolute(k);
@@ -77,7 +77,7 @@ namespace tnp {
       ptr_vector<HornerPolynomial> compilePolynomials(const unsigned int order) {
 	ptr_vector<HornerPolynomial> b;
 	for (unsigned int k = 1; k <= order; k++)
-	  b.push_back(new HornerPolynomial(convolute(k, order) / ((unsigned int) boost::math::factorial<double>(k))));
+	  b.push_back(new HornerPolynomial(convolute(order, k) / ((unsigned int) boost::math::factorial<double>(k))));
 	return b;
       }
 

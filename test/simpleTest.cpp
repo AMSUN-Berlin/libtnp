@@ -37,10 +37,27 @@ init_unit_test_suite( int argc, char* argv[] ) {
 
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testMultiplicationWithTwo, testNumbers().begin(), testNumbers().end() ) );
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testPowOne, testNumbers().begin(), testNumbers().end() ) );
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testPowZero, testNumbers().begin(), testNumbers().end() ) );
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testSquare, testNumbers().begin(), testNumbers().end() ) );
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testCube, testNumbers().begin(), testNumbers().end() ) );
   
-  /*  framework::master_test_suite().
+  /*
+  framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testManyMultiplicationsWithOne, testDimensions.begin(), testDimensions.end() ) );
+
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testManySquaresOfOne, testDimensions.begin(), testDimensions.end() ) );
   */
+
   const std::vector<UnaryAnalyticFunctionTest>& analyticTestCases = UnaryAnalyticFunctionTest::testCases();
 
   framework::master_test_suite().

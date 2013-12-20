@@ -30,5 +30,14 @@ namespace tnp {
 	result = result * result;
       return result;
     }
+
+    NPNumber squareLoop(NPNumber result, unsigned int n) {
+      boost::timer::auto_cpu_timer t;
+
+      for (unsigned int i = 0; i < n; ++i)
+	result = result.pow(2);
+      return result;
+    }
+
   }
 }

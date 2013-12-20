@@ -142,23 +142,15 @@ namespace tnp {
       return *this;
     }
 
-    NPNumber pow(unsigned int power) const;
+    NPNumber pow(int power) const;
 
     void toParameter(unsigned int param) {
-      /* dx/dx = 1.0, ddx/ddx = 1.0, ... */
-      while (param < values.size()) {
-	values[param+1] = 1.0;
-	param += width;
-      }
+      values[param+1] = 1.0;
     }
     
     NPNumber asParameter(unsigned int param) const {
       vector<double> args(values);
-      /* dx/dx = 1.0, ddx/ddx = 1.0, ... */
-      while (param < args.size()) {
-	args[param+1] = 1.0;
-	param += width;
-      }
+      args[param+1] = 1.0;
       return NPNumber(width, args);
     }
 
