@@ -54,7 +54,7 @@ namespace tnp {
   public:
 
     NPNumber(unsigned int params, unsigned int order) : _order(order), width(params+1), 
-							values(width * order+1, 0.0) {
+							values(width * (order+1), 0.0) {
       Composition::ensureExistance(_order) ;
       Multiplication::ensureExistance(_order) ;
     }
@@ -95,6 +95,10 @@ namespace tnp {
 
     inline double der(const unsigned int param, const unsigned int order) const 
     { return values[width*order + param]; }
+
+    inline double& der(const unsigned int param, const unsigned int order) {
+      return values[width*order + param];
+    }
 
     /* operators */
     bool operator==(const NPNumber& o) const {
@@ -139,12 +143,20 @@ namespace tnp {
     }
 
     NPNumber pow(unsigned int power) const;
+
+    void toParameter(unsigned int param) {
+      /* dx/dx = 1.0, ddx/ddx = 1.0, ... */
+      while (param < values.size()) {
+	values[param+1] = 1.0;
+	param += width;
+      }
+    }
     
     NPNumber asParameter(unsigned int param) const {
       vector<double> args(values);
       /* dx/dx = 1.0, ddx/ddx = 1.0, ... */
       while (param < args.size()) {
-	args[param] = 1.0;
+	args[param+1] = 1.0;
 	param += width;
       }
       return NPNumber(width, args);
@@ -161,12 +173,7 @@ namespace tnp {
       return num;
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const NPNumber& n) {
-      out << "npnumber{width=" << n.width << ", order=" << n.order() << ", values=[";
-      std::copy(n.values.begin(), n.values.end(), std::ostream_iterator<double>(out, ", "));
-      out << "]}";
-      return out;
-    }   
+    friend std::ostream& operator<<(std::ostream& out, const NPNumber& n);
   };
 
 }

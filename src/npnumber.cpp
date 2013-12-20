@@ -21,6 +21,8 @@
 #include <functional>
 #include <algorithm>
 
+#include "prettyprint.hpp"
+
 using namespace std;
 
 namespace tnp {
@@ -133,4 +135,8 @@ namespace tnp {
     return *this;
   }  
 
+  std::ostream& operator<<(std::ostream& out, const NPNumber& n) {
+    out << "npnumber{width=" << n.width << ", order=" << n.order() << ", values=" << n.values << "}";
+    return out;
+  }   
 }

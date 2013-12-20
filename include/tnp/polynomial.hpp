@@ -41,6 +41,7 @@ namespace tnp {
   typedef map<unsigned int, unsigned int> Monomial;
 
   class Term {
+    Term deriveTotal(unsigned int var, unsigned int width) const;
   public:
     Monomial monomial;
     int factor;
@@ -74,6 +75,8 @@ namespace tnp {
     bool operator==(const Term& o) const { return factor == o.factor && monomial == o.monomial; }
 
     Term partialDerivative(unsigned int var) const;
+
+    set<Term> totalDerivative(unsigned int width) const;
 
     unsigned int variables() const { return monomial.size() > 0 ? monomial.rbegin()->first + 1 : 0; }
 
@@ -124,6 +127,8 @@ namespace tnp {
 
     StdPolynomial partialDerivative(const unsigned int var) const;
 
+    StdPolynomial totalDerivative(unsigned int width) const;
+    
     friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {
       char comma[2] = {'\0', '\0'};
       for (Term t : p.terms) {

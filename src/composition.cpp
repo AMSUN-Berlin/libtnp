@@ -37,8 +37,8 @@ namespace tnp {
 						   const unsigned int width, const unsigned int j) const {
       target[order * width + j] = 0.0;
       for (int k = 0; k < order; k++) 
-	target[order*width + j] += target[(k+1)*width] * a[j] * bell_polynomials[k].eval(a, width) + 
-	  target[k*width] * bell_polynomials[k].evalDer(a, j, width);
+	target[order*width + j] += f[k+1] * a[j] * bell_polynomials[k].eval(a, width) + 
+	  a[order*width + j] * bell_polynomials[k].evalDer(a, j, width);
       
     }
 

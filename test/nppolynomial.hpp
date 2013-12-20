@@ -35,6 +35,7 @@ namespace tnp {
     NPNumber eval(const Term& t, const vector<NPNumber>& arg) const {
       NPNumber res(arg[0].params()+1, constant(t.factor, arg[0].data().size()));
       for (auto e : t.monomial) {
+ls
 	res *= arg[get<0>(e)].pow(get<1>(e));
       }
       return res;

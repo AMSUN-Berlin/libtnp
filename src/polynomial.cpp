@@ -158,6 +158,35 @@ namespace tnp {
     }
   }
 
+  Term Term::deriveTotal(unsigned int var, unsigned int width) const {
+    Monomial der(monomial);
+    unsigned int f = 1;
+    if (der[var] == 1) {
+      der.erase(var);
+    } else {
+      f = der[var];
+      der[var] -= 1;
+    }
+
+    if (monomial.find(var + width) == monomial.end()) 
+      der[var + width] = 1;
+    else
+      der[var + width] += 1;
+    
+    return Term(factor*f, der);
+  }
+
+  set<Term> Term::totalDerivative(unsigned int width) const {
+    set<Term> dTerms;
+
+    /* derive for every key */
+    for (auto e : monomial) {
+      addTerm(dTerms, deriveTotal(e.first, width));
+    }
+
+    return dTerms;
+  }
+
   Term var(unsigned int idx) {
     return Term(1, Monomial({{idx, 1}}));
   }  
@@ -214,6 +243,14 @@ namespace tnp {
     set<Term> dterms;
     for (Term t : terms)
       addTerm(dterms, t.partialDerivative(var));
+    return dterms;
+  }
+
+  StdPolynomial StdPolynomial::totalDerivative(const unsigned int width) const {
+    set<Term> dterms;
+    for (Term t : terms)
+      for (Term dt : t.totalDerivative(width))
+	addTerm(dterms, dt);
     return dterms;
   }
 
@@ -301,8 +338,10 @@ namespace tnp {
     double res = 0.0;
     if (hp) {      
       res += hp.get()->eval(arg, width); // p
-      res *= arg[variable*width+der]; // d g_i / dx
-      res *= (factor + power) * powi(arg[variable*width], power - 1); // d ( f*g_i^p ) / dx 
+      res *= factor * arg[variable*width+der]; // d g_i / dx
+      if (power > 1) 
+      	res *= (factor + power) * powi(arg[variable*width], power - 1); // d ( f*g_i^p ) / dx 
+      
     
       double sres = hp.get()->evalDer(arg, der, width);
       sres *= factor * powi(arg[variable*width], power);

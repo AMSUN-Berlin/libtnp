@@ -73,6 +73,8 @@ namespace tnp {
     public:
       static vector<StdPolynomial> makeStdPolys() {
 	vector <StdPolynomial> res;
+	/* x_1 + x_2 */
+	res.push_back(StdPolynomial(var(0) + var(1)));
 	/* x_1²*x_2³ + x_2 */
 	res.push_back(StdPolynomial(var(0)^2)*(var(1)^3) + var(1));
 	/* x_0² + 2 */
@@ -168,28 +170,37 @@ namespace tnp {
 
     class PolynomialFunctionTest {
     public:
-      NPPolynomial p;
+      int order;
+      StdPolynomial der;
+      StdPolynomial orig;
       vector<double> dArgs;
 
-      PolynomialFunctionTest(const StdPolynomial& stdP, vector<double> args) : p(stdP), dArgs(args) {}
+      PolynomialFunctionTest(const int o, const StdPolynomial& d, const StdPolynomial& p, vector<double> args) : order(o), der(d), orig(p), dArgs(args) {}
 
       /* evaluate the given polynomial using AD and return value and partial derivatives */
       NPNumber eval() const {
 	vector<NPNumber> args;
-	for (int i = 0; i < dArgs.size(); i++) {
-	  args.push_back(NPNumber(dArgs.size() + 1, variable(dArgs[i], i+1, dArgs.size()+1)));
+	const unsigned int params = dArgs.size() / (order+1);
+	for (int i = 0; i < params; i++) {
+	  NPNumber np(params, order);
+	  for (int o = 0; o <= order; o++)
+	    np.der(0, o) = dArgs[(o * params) + i];
+
+	  np.toParameter(i);
+	  cout << "Parameter " << i << " = " << np << endl;
+	  args.push_back(np);
 	}
-	return p.eval(args);
+	return NPPolynomial(orig).eval(args);
       }
 
       /* evaluate the given polynomial directly */
       double evalValue() const {
-	return p.poly.eval(dArgs);
+	return der.eval(dArgs);
       }
 
       /* evaluate partial derivative using symbolic differentiation */
       double evalPartialDerivative(unsigned int var) const {
-	return p.poly.partialDerivative(var).eval(dArgs);
+	return der.partialDerivative(var).eval(dArgs);
       }
     };
 
@@ -199,20 +210,24 @@ namespace tnp {
 	const NPNumber npRes = test.eval();
 
 	const double res = test.evalValue();
-	BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(0, 0), 
+	BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(0, test.order), 
 							      boost::test_tools::percent_tolerance(1e-10)), 
-			    "Testing value: " << (test.p.poly) << "\n" <<
-			    "argument: " << test.dArgs << " expected: " << res << "\n" <<
-			    "result: " << npRes.der(0, 0) << "\n") ;
+			    "Testing value of: " << (test.orig) << " (" << test.order << " times derived)" << "\n" <<
+			    "Derivation: " << test.der << "\n" <<		    
+			    "argument: " << test.dArgs << "\n" << 
+			    "expected: " << res << "\n" <<
+			    "result: " << npRes.der(0, test.order) << "\n") ;
       
-	for (int v = 0; v < test.dArgs.size(); v++) {
+	for (int v = 0; v < test.dArgs.size() / (test.order+1); v++) {
 	  const double res = test.evalPartialDerivative(v);
-	  BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(v+1, 0), 
+	  BOOST_CHECK_MESSAGE(boost::test_tools::check_is_close(res, npRes.der(v+1, test.order), 
 								boost::test_tools::percent_tolerance(1e-10)), 
-			      "Testing partial derivative: " << (test.p.poly) << "\n" <<
-			      "Derivation: " << test.p.poly.partialDerivative(v) << "\n" <<
-			      "argument: " << test.dArgs << " expected: " << res << "\n" <<
-			      "result: " << npRes.der(v,0) << "\n") ;
+			      "Testing partial derivative (variable " << v << "): " << (test.orig) << " (" << test.order << " times derived)" << "\n" <<
+			      "Derivation: " << test.der << "\n" <<
+			      "argument: " << test.dArgs << "\n" << 
+			      "expected: " << res << "\n" <<
+			      "result: " << npRes.der(v+1, test.order) << "\n" <<
+			      "from: " << npRes << "\n") ;
 	}
       }
 
@@ -221,8 +236,15 @@ namespace tnp {
 
       PolynomialFunctionTestSuite() : test_suite("Polynomial functions") {
 	for (StdPolynomial p : PolynomialTest::makeStdPolys()) {
-	  for (vector<double> a : generateTestNumbers(p.variables())) {
-	    testCases.push_back(PolynomialFunctionTest(p, a));
+	  const unsigned int vars = p.variables();
+	  StdPolynomial d = p;
+
+	  for (int order = 0; order < 3; order++) {
+	    for (vector<double> a : generateTestNumbers(vars * (order+1))) {
+	      testCases.push_back(PolynomialFunctionTest(order, d, p, a));
+	    }
+	    
+	    d = d.totalDerivative(vars);
 	  }
 	}
 
