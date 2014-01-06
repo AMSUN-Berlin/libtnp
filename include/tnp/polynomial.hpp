@@ -209,6 +209,25 @@ namespace tnp {
       return out;
     }
   };
+
+  struct PolynomialEntry {
+    double factor;
+    unsigned int power;
+    unsigned int var;
+    int facEnd;
+  };
+
+  typedef vector<PolynomialEntry> PackedPolynomial;
+
+  void packInto(PackedPolynomial packed, const HornerPolynomial* p);
+
+  double eval(const PackedPolynomial& p, const vector<double>& arg);
+
+  double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int width);
+
+  double evalDer(const PackedPolynomial& p, const vector<double>& arg, const unsigned int der, const unsigned int width);
+
+
 }
 
 #endif

@@ -30,6 +30,15 @@ namespace tnp {
 
     using namespace boost;
 
+    void testPolypacking(const StdPolynomial& in) {
+      HornerPolynomial h(in);
+      PackedPolynomial packed;
+      packInto(packed, &h);
+
+      vector<double> args({13, 7});
+      BOOST_CHECK_EQUAL(in.eval(args), eval(packed, args));
+    }
+
     void testPolyFactorization(const StdPolynomial& in) {
       HornerPolynomial h(in);
       vector<double> args({42, 21});

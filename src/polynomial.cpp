@@ -354,5 +354,72 @@ namespace tnp {
     return res;
   };
 
+  void packInto(PackedPolynomial packed, const HornerPolynomial* p) {
+    packed.push_back(PolynomialEntry());
+    PolynomialEntry& entry = packed.back();
+    
+    if (p->hp) {
+      packInto(packed, *(p->hp));      
+    }
+
+    entry.facEnd = packed.size();
+
+    if (p->hq) {
+      packInto(packed, *(p->hq));
+    }
+
+    entry.var = p->variable;
+    entry.power = p->power;
+    entry.factor = p->factor;
+  }
+
+  inline double eval(unsigned int pos, const unsigned int width, const PackedPolynomial& packed, const vector<double>& arg) {
+    if (pos < packed.size()) {
+      const PolynomialEntry& entry = packed[pos];
+      if (entry.facEnd > pos) {
+	double p = eval(pos+1, width, packed, arg);
+	p *= entry.factor;
+	p *= powi(arg[width * entry.var], entry.power);
+      
+	return p + eval(entry.facEnd, width, packed, arg);
+      } else {
+	return entry.factor;
+      }
+    }
+    return 0;
+  }
+
+  inline double evalDer(unsigned int pos, const PackedPolynomial& packed, const vector<double>& arg, const unsigned int der, const unsigned int width) {
+    if (pos < packed.size()) {
+      const PolynomialEntry& entry = packed[pos];
+      if (entry.facEnd > pos) {
+	double p = eval(pos+1, width, packed, arg);
+	p *= entry.factor * arg[entry.var * width + der];
+
+	if (entry.power > 1)
+	  p *= (entry.factor + entry.power) * powi(arg[entry.var*width], entry.power - 1);
+	
+	double d = evalDer(pos+1, packed, arg, der, width);
+	d *= entry.factor * powi(arg[entry.var*width], entry.power);
+	p += d;      
+	return p;
+      } else {
+	return 0.0;
+      }
+    }
+    return 0;
+  }
+
+  double eval(const PackedPolynomial& p, const vector<double>& arg) {
+    return eval(0, 1, p, arg);
+  }
+
+  inline double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int width) {
+    return eval(0, width, p, arg);
+  }
+
+  double evalDer(const PackedPolynomial& p, const vector<double>& arg, const unsigned int der, const unsigned int width) {
+    return evalDer(0, p, arg, der, width);
+  }
 
 }
