@@ -264,6 +264,15 @@ namespace tnp {
     return none;
   }
 
+  unsigned int maxCommonPwr(const unsigned int var, const set<Term>& sum) {
+    unsigned int pwr = 0;
+    for (const Term& t : sum)
+      if (t.monomial.find(var) != t.monomial.end())
+	if (t.monomial.at(var) < pwr || pwr == 0)
+	  pwr = t.monomial.at(var);
+    return pwr;
+  }
+
   /**
    * Factorize an ordered list of terms
    * Returns a newly allocated Horner polynomial, if successful.
@@ -278,17 +287,16 @@ namespace tnp {
     const optional<unsigned int> v = nextVarIn(terms);
 
     if (v) {
+      const unsigned int pwr = maxCommonPwr(*v, terms);
       for (Term t : terms) {
-	addTerm(ps, t / var(*v));
-	addTerm(qs, t % var(*v));
+	addTerm(ps, t / (var(*v)^pwr));
+	addTerm(qs, t % (var(*v)^pwr));
       }
-      HornerPolynomial* h = new HornerPolynomial(1, *v);
+      HornerPolynomial* h = new HornerPolynomial(1, *v, pwr);
 
-      if (ps.size() > 0)
-	h->hp = factorize(ps);
+      h->hp = factorize(ps);
 
-      if (qs.size() > 0)
-	h->hq = factorize(qs);
+      h->hq = factorize(qs);
       
       return optional<HornerPolynomial*>(h);
     }
@@ -340,7 +348,7 @@ namespace tnp {
       res += hp.get()->eval(arg, width); // p
       res *= factor * arg[variable*width+der]; // d g_i / dx
       if (power > 1) 
-      	res *= (factor + power) * powi(arg[variable*width], power - 1); // d ( f*g_i^p ) / dx 
+      	res *= power * powi(arg[variable*width], power - 1); // d ( f*g_i^p ) / dx 
       
     
       double sres = hp.get()->evalDer(arg, der, width);

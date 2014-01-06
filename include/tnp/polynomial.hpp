@@ -185,6 +185,8 @@ namespace tnp {
 
     HornerPolynomial(int f, unsigned int v) : variable(v), power(1), factor(f) {}
 
+    HornerPolynomial(int f, unsigned int v, unsigned int pwr) : variable(v), power(pwr), factor(f) {}
+
     HornerPolynomial(int f, unsigned int v, unsigned int pwr, HornerPolynomial p,  
 		     HornerPolynomial q) :
       variable(v), power(pwr), factor(f), hp(new HornerPolynomial(p)), hq(new HornerPolynomial(q)) {}    
