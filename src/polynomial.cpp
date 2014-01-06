@@ -354,34 +354,40 @@ namespace tnp {
     return res;
   };
 
-  void packInto(PackedPolynomial packed, const HornerPolynomial* p) {
+  ostream& operator<<(ostream& out, const PolynomialEntry& e) {
+    out << "{factor = " << e.factor << ", " << "power = " << e.power << ", var = " << e.var << ", end = " << e.facEnd << "}";
+    return out;
+  }
+
+  void packInto(PackedPolynomial& packed, const HornerPolynomial* p) {
+    const unsigned int last = packed.size();
     packed.push_back(PolynomialEntry());
-    PolynomialEntry& entry = packed.back();
+    packed.back().facEnd = -1;
     
     if (p->hp) {
       packInto(packed, *(p->hp));      
+      packed[last].facEnd = last;
     }
 
-    entry.facEnd = packed.size();
-
     if (p->hq) {
+      packed[last].facEnd = packed.size();
       packInto(packed, *(p->hq));
     }
 
-    entry.var = p->variable;
-    entry.power = p->power;
-    entry.factor = p->factor;
+    packed[last].var = p->variable;
+    packed[last].power = p->power;
+    packed[last].factor = p->factor;
   }
 
-  inline double eval(unsigned int pos, const unsigned int width, const PackedPolynomial& packed, const vector<double>& arg) {
+  inline double eval(int pos, const unsigned int width, const PackedPolynomial& packed, const vector<double>& arg) {
     if (pos < packed.size()) {
       const PolynomialEntry& entry = packed[pos];
-      if (entry.facEnd > pos) {
+      if (entry.facEnd >= pos) {
 	double p = eval(pos+1, width, packed, arg);
 	p *= entry.factor;
 	p *= powi(arg[width * entry.var], entry.power);
       
-	return p + eval(entry.facEnd, width, packed, arg);
+	return p + (entry.facEnd > pos ? eval(entry.facEnd, width, packed, arg) : 0);
       } else {
 	return entry.factor;
       }
@@ -389,10 +395,10 @@ namespace tnp {
     return 0;
   }
 
-  inline double evalDer(unsigned int pos, const PackedPolynomial& packed, const vector<double>& arg, const unsigned int der, const unsigned int width) {
+  inline double evalDer(int pos, const PackedPolynomial& packed, const vector<double>& arg, const unsigned int der, const unsigned int width) {
     if (pos < packed.size()) {
       const PolynomialEntry& entry = packed[pos];
-      if (entry.facEnd > pos) {
+      if (entry.facEnd >= pos) {
 	double p = eval(pos+1, width, packed, arg);
 	p *= entry.factor * arg[entry.var * width + der];
 
@@ -401,8 +407,7 @@ namespace tnp {
 	
 	double d = evalDer(pos+1, packed, arg, der, width);
 	d *= entry.factor * powi(arg[entry.var*width], entry.power);
-	p += d;      
-	return p;
+	return p + d + (entry.facEnd > pos ? evalDer(entry.facEnd, packed, arg, der, width) : 0);
       } else {
 	return 0.0;
       }

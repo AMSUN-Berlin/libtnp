@@ -26,6 +26,8 @@
 #include <map>
 #include <set>
 
+#include "prettyprint.hpp"
+
 namespace tnp {
 
   using namespace boost;
@@ -217,9 +219,11 @@ namespace tnp {
     int facEnd;
   };
 
+  ostream& operator<<(ostream& out, const PolynomialEntry& e);
+
   typedef vector<PolynomialEntry> PackedPolynomial;
 
-  void packInto(PackedPolynomial packed, const HornerPolynomial* p);
+  void packInto(PackedPolynomial& packed, const HornerPolynomial* p);
 
   double eval(const PackedPolynomial& p, const vector<double>& arg);
 

@@ -150,6 +150,10 @@ namespace tnp {
 	const std::vector<tnp::StdPolynomial> testPolys = PolynomialTest::stdPolys();
 
 	add( BOOST_PARAM_TEST_CASE( &testPolyEquality, testPolys.begin(), testPolys.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyFactorization, testPolys.begin(), testPolys.end() ) );
+
+	add( BOOST_PARAM_TEST_CASE( &testPolyPacking, testPolys.begin(), testPolys.end() ) );
   
 	add( BOOST_PARAM_TEST_CASE( &testPolyAdditionWithZero, testPolys.begin(), testPolys.end() ) );
   
