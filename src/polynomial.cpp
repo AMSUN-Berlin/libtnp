@@ -55,7 +55,7 @@ namespace tnp {
 
   double Term::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = factor;
-    for(auto e : monomial) {
+    for(auto const& e : monomial) {
       res *= powi(arg[std::get<0>(e) * width], std::get<1>(e));
     }
     return res;
@@ -66,7 +66,7 @@ namespace tnp {
       return Term(1);
     
     Monomial m2(monomial);
-    for (auto e : m2)
+    for (auto const& e : m2)
       m2[std::get<0>(e)] += (p-1);
     return Term(pow(factor, p), m2);
   }
@@ -77,7 +77,7 @@ namespace tnp {
 
   Term Term::operator*(const Term& t) const {
     Monomial m(monomial);
-    for (auto e : t.monomial) {
+    for (auto const& e : t.monomial) {
       unsigned int key = std::get<0>(e);
       if (m.find(key) != m.end()) {
 	m[key] += t.monomial.at(key);
@@ -102,7 +102,7 @@ namespace tnp {
   Term Term::operator/(const Term& t) const {
     Monomial div(monomial);
 
-    for (auto e : t.monomial) {
+    for (auto const& e : t.monomial) {
       const unsigned int var = get<0>(e);
       const unsigned int pow = get<1>(e);
       
@@ -127,7 +127,7 @@ namespace tnp {
   Term Term::operator%(const Term& t) const {
     Monomial div(monomial);
 
-    for (auto e : t.monomial) {
+    for (auto const& e : t.monomial) {
       const unsigned int var = get<0>(e);
       const unsigned int pow = get<1>(e);
       
@@ -184,7 +184,7 @@ namespace tnp {
     set<Term> dTerms;
 
     /* derive for every key */
-    for (auto e : monomial) {
+    for (auto const& e : monomial) {
       addTerm(dTerms, deriveTotal(e.first, width));
     }
 
@@ -198,8 +198,8 @@ namespace tnp {
   StdPolynomial StdPolynomial::operator*(const StdPolynomial& f) const {
     set<Term> pTerms;
     
-    for (const Term t : terms) 
-      for (const Term t2 : f.terms) {
+    for (const Term& t : terms) 
+      for (const Term& t2 : f.terms) {
 	addTerm(pTerms, t * t2);
       }
     
@@ -220,14 +220,14 @@ namespace tnp {
 
   StdPolynomial StdPolynomial::operator/(const Term& t) const {
     set<Term> dTerms;
-    for (Term t2 : terms)
+    for (const Term& t2 : terms)
       addTerm(dTerms, t2 / t);
     return StdPolynomial(dTerms);
   }
 
   StdPolynomial StdPolynomial::operator%(const Term& t) const {
     set<Term> rTerms;
-    for (Term t2 : terms)
+    for (const Term& t2 : terms)
       addTerm(rTerms, t2 % t);
     return StdPolynomial(rTerms);
   }
@@ -238,22 +238,22 @@ namespace tnp {
 
   double StdPolynomial::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = 0.0;
-    for (Term t : terms)
+    for (const Term& t : terms)
       res += t.eval(arg, width);
     return res;
   }
 
   StdPolynomial StdPolynomial::partialDerivative(const unsigned int var) const {
     set<Term> dterms;
-    for (Term t : terms)
+    for (const Term& t : terms)
       addTerm(dterms, t.partialDerivative(var));
     return dterms;
   }
 
   StdPolynomial StdPolynomial::totalDerivative(const unsigned int width) const {
     set<Term> dterms;
-    for (Term t : terms)
-      for (Term dt : t.totalDerivative(width))
+    for (const Term& t : terms)
+      for (const Term& dt : t.totalDerivative(width))
 	addTerm(dterms, dt);
     return dterms;
   }
@@ -292,7 +292,7 @@ namespace tnp {
 
     if (v) {
       const unsigned int pwr = maxCommonPwr(*v, terms);
-      for (Term t : terms) {
+      for (const Term& t : terms) {
 	addTerm(ps, t / (var(*v)^pwr));
 	addTerm(qs, t % (var(*v)^pwr));
       }
@@ -307,7 +307,7 @@ namespace tnp {
     
     if (terms.size() > 0) {
       int sum = 0;
-      for (Term t : terms)
+      for (const Term& t : terms)
 	sum += t.factor;
         
       return optional<HornerPolynomial*>(new HornerPolynomial(sum));
@@ -476,7 +476,7 @@ namespace tnp {
     vector<double> data;
     data.reserve(packed.size());
 
-    for (PInst inst : packed) {
+    for (const PInst& inst : packed) {
       switch (inst.code) {
       case CONST : data.push_back(inst.carry_1); break;
       case LOAD : {
