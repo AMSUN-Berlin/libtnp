@@ -23,34 +23,95 @@ namespace tnp {
   namespace ops {
 
     using namespace std;
-    
-    void Composition::evalValue(const vector<double>& f, const vector<double>& a,
+    /*
+    void Composition::evalValue(const vector<double>& f, const vector<double>& bell,
 				vector<double>& target, const unsigned int width) const {
       target[order*width] = 0.0;
       
       for (int k = 0; k < order; k++)
-	target[order*width] += f[k+1] * bell_polynomials[k].eval(a, width);
+	target[order*width] += f[k+1] * bell[k];
     }
 
     inline void Composition::evalPartialDerivative(const vector<double>& f, const vector<double>& a,
+						   const vector<double>& bell,
 						   vector<double>& target,
 						   const unsigned int width, const unsigned int j) const {
       target[order * width + j] = 0.0;
       for (int k = 0; k < order; k++) 
-	target[order*width + j] += f[k+2] * a[j] * bell_polynomials[k].eval(a, width) + 
-	  f[k+1] * bell_polynomials[k].evalDer(a, j, width);
+	target[order*width + j] += f[k+2] * a[j] * bell[k] + 
+	  f[k+1] * evalDer(bell_polynomials[k], a, j, width);
       
     }
+    */
 
+    CompositionCache CompositionCache::instance;
+
+    const StdPolynomial& Composition::convolute(unsigned int n, unsigned int k) {
+      if (n < order) {
+	Composition* comp = CompositionCache::staticGetInstance(n);
+	return comp->getConvolute(k);
+      } else {
+	return getConvolute(k);
+      }
+    }
+
+    const StdPolynomial& Composition::getConvolute(unsigned int k) {
+      while (convolutes.size() < k) {
+	convolutes.push_back(makeConvolute(k));
+      }
+      return convolutes[k-1];	
+    }
+
+    const StdPolynomial Composition::makeConvolute(unsigned int k) {
+      StdPolynomial p;
+      if (k == 1)
+	return var(order);
+      else {
+	for (int j = 1; j < order; j++) {
+	  p += convolute(order - j, k - 1) * var(j) * ((unsigned int)binomial[j]);
+	}
+	return p;
+      }
+    }
+
+    vector<SumOfProducts> Composition::compilePolynomials(const unsigned int order) {
+      vector<SumOfProducts> b;
+      for (unsigned int k = 1; k <= order; k++) {
+	const StdPolynomial p = convolute(order, k) / ((unsigned int) boost::math::factorial<double>(k));
+	const SumOfProducts s(p);	  
+	b.push_back(s);
+      }
+      return b;
+    }
+
+    vector<DerSumOfProducts> Composition::compileDerPolynomials(const unsigned int order) {
+      vector<DerSumOfProducts> b;
+      for (unsigned int k = 1; k <= order; k++) {
+	const StdPolynomial p = convolute(order, k) / ((unsigned int) boost::math::factorial<double>(k));
+	b.push_back(DerSumOfProducts(p));
+      }
+      return b;
+    }
+    
     void Composition::apply(const vector<double>& f, const vector<double>& a,
-			    vector<double>& target, unsigned int width) const {
+			    vector<double>& target, const unsigned int width) const {
       const unsigned int params = width - 1;
       if (order > 0) {
-	cacheVector()[order-1].apply(f, a, target, width);
-	evalValue(f, a, target, width);
+	last->apply(f, a, target, width);
 
-	for (int j = 1; j <= params; ++j) {
-	  evalPartialDerivative(f, a, target, width, j);
+	for (int j = 0 ; j <= params; ++j)
+	  target[order*width + j] = 0;
+
+	for (int k = 0; k < order; k++) {
+	  const SumOfProducts& bellK = bell_polynomials[k];
+	  const DerSumOfProducts& dBellK = der_bell_polynomials[k];
+	  const double bell = bellK.eval(a.data(), width);
+	
+	  target[order*width] += f[k+1] * bell;
+	  
+	  for (int j = 1; j <= params; ++j) {
+	    target[order*width + j] += f[k+2] * a[j] * bell + f[k+1] * dBellK.eval(a.data(), width, j);
+	  }
 	}
       } else {
 	target[0] = f[0];
@@ -58,13 +119,6 @@ namespace tnp {
 	  target[order*width + j] = f[1] * a[order*width+j];
 	}
       }
-    }
-
-    vector<Composition>& Composition::cacheVectorInitialized(const unsigned int upTo) {
-      while (upTo >= cacheVector().size()) {
-	cacheVector().push_back(Composition(cacheVector().size()));      
-      }
-      return cacheVector();
     }
   }
 }

@@ -37,83 +37,70 @@ namespace tnp {
      * Efficient implementation of Composition based on pre-computed polynomials
      */
     class Composition { 
-
+    public:
       const unsigned int order;
 
+    private:
       /* contains (x <> .. <> x), the i-th entry is the order-th field of the i-th convolution */
       vector<StdPolynomial> convolutes;
 
       const vector<double> binomial;
 
-      const ptr_vector<HornerPolynomial> bell_polynomials;    
+      const vector<SumOfProducts> bell_polynomials;
+      const vector<DerSumOfProducts> der_bell_polynomials;
+      const Composition* last;
 
-      const StdPolynomial& convolute(unsigned int n, unsigned int k) {
-	if (n < order) {
-	  Composition& comp = ensureExistance(n);
-	  return comp.getConvolute(k);
-	} else {
-	  return getConvolute(k);
-	}
-      }
+      const StdPolynomial& convolute(unsigned int n, unsigned int k);
+      const StdPolynomial& getConvolute(unsigned int k);
+      const StdPolynomial makeConvolute(unsigned int k);
 
-      const StdPolynomial& getConvolute(unsigned int k) {
-	while (convolutes.size() < k) {
-	  convolutes.push_back(makeConvolute(k));
-	}
-	return convolutes[k-1];	
-      }
+      vector<SumOfProducts> compilePolynomials(const unsigned int order);
 
-      const StdPolynomial makeConvolute(unsigned int k) {
-	StdPolynomial p;
-	if (k == 1)
-	  return var(order);
-	else {
-	  for (int j = 1; j < order; j++)
-	    p += convolute(order - j, k - 1) * var(j) * ((unsigned int)binomial[j]);
-	  return p;
-	}
-      }
-
-      ptr_vector<HornerPolynomial> compilePolynomials(const unsigned int order) {
-	ptr_vector<HornerPolynomial> b;
-	for (unsigned int k = 1; k <= order; k++)
-	  b.push_back(new HornerPolynomial(convolute(order, k) / ((unsigned int) boost::math::factorial<double>(k))));
-	return b;
-      }
-
-      void evalPartialDerivative(const vector<double>& f, const vector<double>& a,
-				 vector<double>& target,
-				 const unsigned int width, const unsigned int j) const;
-
-      void evalValue(const vector<double>& f, const vector<double>& a,
-		     vector<double>& target, const unsigned int width) const;
+      vector<DerSumOfProducts> compileDerPolynomials(const unsigned int order);
 
     public:
-      /**
-       * return the cacheVector without initialisation
-       */
-      inline static vector<Composition>& cacheVector() {
-	static vector<Composition> cache({Composition(0)});
-	return cache;
-      }
+      const vector<SumOfProducts>& bell() const { return bell_polynomials; }
 
-      /**
-       * Gets the cache vector and ensures that it is filled up to the given order
-       */
-      static vector<Composition>& cacheVectorInitialized(const unsigned int upTo);
+      Composition(Composition* smaller) : order(smaller->order+1),
+					  binomial(Multiplication::compileBinomial(smaller->order+1)), 
+					  bell_polynomials(compilePolynomials(smaller->order+1)), 
+					  der_bell_polynomials(compileDerPolynomials(smaller->order+1)), last(smaller)  {}
 
-      static Composition& ensureExistance(const unsigned int order) {
-	if (cacheVector().size() <= order) {
-	  cacheVectorInitialized(order);
-	}
-	return cacheVector()[order];
-      }
-        
-      Composition(unsigned int o) : order(o), binomial(Multiplication::compileBinomial(o)), 
-				    bell_polynomials(compilePolynomials(o)) {}
+      Composition() : order(0), binomial(Multiplication::compileBinomial(0)), last(NULL) {}
       
       void apply(const vector<double>& a, const vector<double>& b,
 		 vector<double>& target, unsigned int width) const;
+    };
+
+    class CompositionCache {
+      
+      static CompositionCache instance;
+
+      vector<Composition*> cache;
+    public:
+      CompositionCache() {
+	cache.push_back(new Composition());       
+      }
+      
+      ~CompositionCache() {
+	for (Composition* c : cache)
+	  delete c;
+      }
+
+      inline static Composition* staticGetInstance(int order) {
+	return instance.getInstance(order);
+      };
+
+      Composition* getInstance(int order) {
+	if (cache.size() > order)
+	  return cache[order];
+	else {
+	  while(cache.size() <= order)
+	    cache.push_back(new Composition(cache.back()));
+	  
+	  return cache.back();
+	}	  
+      };
     };
   }
 }

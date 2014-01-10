@@ -33,7 +33,17 @@ namespace tnp {
   using namespace boost;
   using namespace std;
 
-  double powi (double base, unsigned int exp);
+  inline double powi (double base, unsigned int exp) {
+    double res = 1;
+    while (exp) {
+        if (exp & 1)
+            res *= base;
+        exp >>= 1;
+        base *= base;
+    }
+    return res;
+  }
+
 
   class StdPolynomial;
 
@@ -56,9 +66,9 @@ namespace tnp {
 
     Term(int f, Monomial m) : monomial(m), factor(f) {}
 
-    inline double eval(const vector<double>& arg) const;
+    double eval(const vector<double>& arg) const;
 
-    inline double eval(const vector<double>& arg, const unsigned int width) const;
+    double eval(const vector<double>& arg, const unsigned int width) const;
 
     Term operator ^(unsigned int p) const;
 
@@ -94,6 +104,8 @@ namespace tnp {
   Term var(unsigned int idx);
 
   void addTerm(set<Term>& set, const Term& t);
+
+  struct AddDelims { static const pretty_print::delimiters_values<char> values; }; 
 
   class StdPolynomial {
   public:
@@ -132,15 +144,111 @@ namespace tnp {
     StdPolynomial totalDerivative(unsigned int width) const;
     
     friend std::ostream& operator<<(std::ostream& out, const StdPolynomial& p) {
-      char comma[2] = {'\0', '\0'};
-      for (Term t : p.terms) {
-	out << comma << t;
-	comma[0] = '+';
-      }
+      out << p.terms; //pretty_print::custom_delims<AddDelims>(p.terms);
       return out;
     }
   };
 
+  struct Product {
+    int factor;
+    vector<int> fields;
+  };
+
+  class SumOfProducts {
+  public:
+    static long lookups;
+    static long evals;
+    vector<Product> sum;
+
+    SumOfProducts(const StdPolynomial& poly) {      
+      
+      for (const Term& t : poly.terms) {
+	Product p;
+	p.factor = t.factor;
+	if (p.factor != 0)
+	  for (auto pair : t.monomial) {
+	    const int field = get<0>(pair);
+	    const int  power = get<1>(pair);
+
+	    for (int i = 0; i < power; ++i)
+	      p.fields.push_back(field);
+	  }
+	sum.push_back(p);
+      }
+    }
+
+    inline double eval(const double* arg, const int width) const {
+      double res = 0.0;
+      for (const Product& p : sum) {
+	evals++;
+	double prod = p.factor;
+	for (int f : p.fields) {
+	  prod *= arg[f*width];
+	}
+	res += prod;
+      }
+      return res;
+    };
+  };
+
+  struct DerProductField {
+    bool is_der;
+    int key;
+  };
+
+  struct DerProduct {
+    int factor;
+    vector<DerProductField> fields;
+  };
+
+  class DerSumOfProducts {
+  public:
+    vector<DerProduct> sum;
+
+    DerSumOfProducts(const StdPolynomial& poly) {
+      const int vars = poly.variables();
+      /* derive poly, mark maximum var as derivative */
+      const StdPolynomial& derP = poly.totalDerivative(vars);
+
+      for (const Term& t : derP.terms) {
+	DerProduct p;
+	p.factor = t.factor;
+	if (p.factor != 0)
+	  for (auto pair : t.monomial) {
+	    const int var = get<0>(pair);
+	    const int power = get<1>(pair);
+	    
+	    DerProductField field;
+	    
+	    if (var > vars) {	      
+	      field.key = var - vars;
+	      field.is_der = true;
+	    } else {
+	      field.key = var;
+	      field.is_der = false;	      
+	    }
+
+	    for(int i = 0; i < power; ++i)
+	      p.fields.push_back(field);
+	  }
+	sum.push_back(p);
+      }
+    }
+
+    inline double eval(const double* arg, const int width, const int der) const {
+      double res = 0.0;
+      for (const DerProduct& p : sum) {
+	SumOfProducts::evals++;
+	double prod = p.factor;
+	for (DerProductField f : p.fields) {
+	  prod *= arg[f.key*width + (f.is_der ? der : 0)];
+	}
+	res += prod;
+      }
+      return res;
+    };
+  };
+ 
   /**
    * f * var^power * (p_1 + .. + p_n) + q_1 + .. + q_m
    */
@@ -204,8 +312,10 @@ namespace tnp {
 
     double evalDer(const vector<double>& arg, const unsigned int der, const unsigned int width) const;
 
+    HornerPolynomial* der(const unsigned int der) const;
+
     friend std::ostream& operator<<(std::ostream& out, const HornerPolynomial& p) {
-      out << "x_" << p.variable << "^" << p.power;
+      out << p.factor << " x_" << p.variable << "^" << p.power;
       if (p.hp)
 	out << " * (" << (**(p.hp)) << ")";
       if (p.hq)
@@ -214,25 +324,27 @@ namespace tnp {
     }
   };
 
-  struct PolynomialEntry {
-    double factor;
-    unsigned int power;
-    unsigned int var;
-    int facEnd;
-  };
+  enum PCode { CONST, LOAD, DER, MULT, ADD};
 
-  ostream& operator<<(ostream& out, const PolynomialEntry& e);
+  struct PInst {
+    PCode code;
+    int carry_1;
+    int carry_2;
+  };  
 
-  typedef vector<PolynomialEntry> PackedPolynomial;
+  ostream& operator<<(ostream& out, const PInst& e);
+
+  typedef vector<PInst> PackedPolynomial;
 
   void packInto(PackedPolynomial& packed, const HornerPolynomial* p);
+
+  void packDerInto(PackedPolynomial& der, const HornerPolynomial* p);
 
   double eval(const PackedPolynomial& p, const vector<double>& arg);
 
   double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int width);
 
-  double evalDer(const PackedPolynomial& p, const vector<double>& arg, const unsigned int der, const unsigned int width);
-
+  double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int der, const unsigned int width);
 
 }
 

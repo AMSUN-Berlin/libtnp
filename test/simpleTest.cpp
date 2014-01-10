@@ -14,7 +14,7 @@ using namespace tnp::test;
 
 test_suite*
 init_unit_test_suite( int argc, char* argv[] ) {
- 
+  
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testEquality, testNumbers().begin(), testNumbers().end() ) );
 
@@ -52,10 +52,16 @@ init_unit_test_suite( int argc, char* argv[] ) {
   
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testManyMultiplicationsWithOne, testDimensions.begin(), testDimensions.end() ) );
-
+  
   framework::master_test_suite().
     add( BOOST_PARAM_TEST_CASE( &testManySquaresOfOne, testDimensions.begin(), testDimensions.end() ) );
-
+  
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testManyBellsOfZero, testDimensions.begin(), testDimensions.end() ) );
+  
+  framework::master_test_suite().
+    add( BOOST_PARAM_TEST_CASE( &testManyAssignments, testDimensions.begin(), testDimensions.end() ) );
+  
   const std::vector<UnaryAnalyticFunctionTest>& analyticTestCases = UnaryAnalyticFunctionTest::testCases();
 
   framework::master_test_suite().

@@ -112,9 +112,10 @@ namespace tnp {
       coefficient *= n - i;
     }
 
-    vector<double> c(values.size());
-    comp().apply(f, values, c, width);
-    return NPNumber(width, c);
+    NPNumber newNum(params(), order());
+    comp()->apply(f, values, newNum.values, width);
+    
+    return newNum;
   }
 
   NPNumber NPNumber::operator*=(const NPNumber& o) {

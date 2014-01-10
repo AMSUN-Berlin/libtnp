@@ -35,7 +35,8 @@ namespace tnp {
       PackedPolynomial packed(0);
       packInto(packed, &h);
 
-      vector<double> args({13, 7});
+      vector<double> args({13, 7, 3});
+
       BOOST_CHECK_EQUAL(in.eval(args), eval(packed, args));
       BOOST_CHECK_MESSAGE(in.eval(args) == eval(packed, args), 
 			  in << " != " << packed);

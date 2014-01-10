@@ -9,6 +9,7 @@ add_definitions(
   -march=native
   -Wall
   -O3
+  -g
 )
 
 #Include custom CMake macro

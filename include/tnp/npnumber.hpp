@@ -48,32 +48,29 @@ namespace tnp {
     unsigned int width;
     std::vector<double> values;    
 
-    inline const Composition& comp() const { return Composition::cacheVector()[_order]; }
     inline const Multiplication& mult() const { return Multiplication::cacheVector()[_order]; }
 
+    NPNumber() {}
+
   public:
+    inline const Composition* comp() const { return CompositionCache::staticGetInstance(_order); }
 
     NPNumber(unsigned int params, unsigned int order) : _order(order), width(params+1), 
 							values(width * (order+1), 0.0) {
-      Composition::ensureExistance(_order) ;
       Multiplication::ensureExistance(_order) ;
     }
 							
     NPNumber(unsigned int width, const std::vector<double>& values) : _order(values.size() / width - 1), 
 								      width(width), 
 								      values(values)  {
-      Composition::ensureExistance(_order) ;
       Multiplication::ensureExistance(_order) ;
     }
     
     NPNumber(unsigned int params, unsigned int order, double value) : _order(order), width(params+1),
 								      values(constant(value, width * (order+1))) {
-      Composition::ensureExistance(_order) ;
       Multiplication::ensureExistance(_order) ;
     }
     
-    ~NPNumber() {}
-
     /* addition */
     NPNumber plus(const NPNumber& o) const;
     NPNumber plus(const unsigned int s) const;

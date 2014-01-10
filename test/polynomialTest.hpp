@@ -191,7 +191,6 @@ namespace tnp {
 	    np.der(0, o) = dArgs[(o * params) + i];
 
 	  np.toParameter(i);
-	  cout << "Parameter " << i << " = " << np << endl;
 	  args.push_back(np);
 	}
 	return NPPolynomial(orig).eval(args);

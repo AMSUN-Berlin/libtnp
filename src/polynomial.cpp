@@ -26,6 +26,10 @@ namespace tnp {
   using namespace std;
   using namespace boost;
 
+  long SumOfProducts::lookups = 0; 
+  long SumOfProducts::evals = 0; 
+  const pretty_print::delimiters_values<char> AddDelims::values = { "", " + ", "" };
+
   void addTerm(set<Term>& set, const Term& t) {
     if (t.factor == 0) 
       return;
@@ -52,7 +56,7 @@ namespace tnp {
   double Term::eval(const std::vector<double>& arg, const unsigned int width) const {
     double res = factor;
     for(auto e : monomial) {
-      res *= pow(arg[std::get<0>(e) * width], std::get<1>(e));
+      res *= powi(arg[std::get<0>(e) * width], std::get<1>(e));
     }
     return res;
   }
@@ -311,17 +315,6 @@ namespace tnp {
     return none;
   }
 
-  double powi (double base, unsigned int exp) {
-    double res = 1;
-    while (exp) {
-        if (exp & 1)
-            res *= base;
-        exp >>= 1;
-        base *= base;
-    }
-    return res;
-  }
-
   double HornerPolynomial::eval(const std::vector<double>& arg) const {
     return eval(arg, 1);
   }
@@ -362,77 +355,157 @@ namespace tnp {
     return res;
   };
 
-  ostream& operator<<(ostream& out, const PolynomialEntry& e) {
-    out << "{factor = " << e.factor << ", " << "power = " << e.power << ", var = " << e.var << ", end = " << e.facEnd << "}";
+  ostream& operator<<(ostream& out, const PInst& inst) {
+    switch (inst.code) {
+    case CONST : out << "CONST " << inst.carry_1; break;
+    case LOAD : out << "LOAD {var=" << inst.carry_1 << ", power=" << inst.carry_2 << "}"; break;
+    case DER : out << "DER {var=" << inst.carry_1 << "}"; break;
+    case MULT : out << "MULT"; break;
+    case ADD : out << "ADD"; break;
+    }
     return out;
   }
 
-  void packInto(PackedPolynomial& packed, const HornerPolynomial* p) {
-    const unsigned int last = packed.size();
-    packed.push_back(PolynomialEntry());
-    packed.back().facEnd = -1;
-    
+  void packInto(PackedPolynomial& packed, const HornerPolynomial* p) {    
+    packed.push_back(PInst());
+    if (p->power > 0) {
+      packed.back().carry_1 = p->variable;
+      packed.back().carry_2 = p->power;
+      packed.back().code = LOAD;
+
+      if (p->factor != 1) {
+	packed.push_back(PInst());
+	packed.back().code = MULT;
+      }      
+    } else {
+      packed.back().carry_1 = p->factor;
+      packed.back().code = CONST;
+    }
+
     if (p->hp) {
       packInto(packed, *(p->hp));      
-      packed[last].facEnd = last;
+      packed.push_back(PInst());
+      packed.back().code = MULT;
     }
 
     if (p->hq) {
-      packed[last].facEnd = packed.size();
-      packInto(packed, *(p->hq));
+      packInto(packed, *(p->hq)); 
+      packed.push_back(PInst());
+      packed.back().code = ADD;
     }
-
-    packed[last].var = p->variable;
-    packed[last].power = p->power;
-    packed[last].factor = p->factor;
   }
 
-  inline double eval(int pos, const unsigned int width, const PackedPolynomial& packed, const vector<double>& arg) {
-    if (pos < packed.size()) {
-      const PolynomialEntry& entry = packed[pos];
-      if (entry.facEnd >= pos) {
-	double p = eval(pos+1, width, packed, arg);
-	p *= entry.factor;
-	p *= powi(arg[width * entry.var], entry.power);
-      
-	return p + (entry.facEnd > pos ? eval(entry.facEnd, width, packed, arg) : 0);
-      } else {
-	return entry.factor;
+  void packDerInto(PackedPolynomial& packed, const HornerPolynomial* p) {    
+    packed.push_back(PInst());
+    if (p->power > 0) {
+      /* f*k*x^(k-1)*x'*(p) + f*x^k*p' + q' */
+
+      packed.back().carry_1 = p->variable; // x'
+      packed.back().code = DER;
+
+      // f * k * x^(k-1)
+      if (p->power > 1) {
+	packed.push_back(PInst());
+	packed.back().carry_1 = p->variable;
+	packed.back().carry_2 = p->power - 1;
+	packed.back().code = LOAD;
+
+	packed.push_back(PInst());
+	packed.back().code = MULT;
+
+	packed.push_back(PInst());
+	packed.back().code = CONST;
+	packed.back().carry_1 = p->power * p->factor;
+
+	packed.push_back(PInst());
+	packed.back().code = MULT;
+      } else if (p->factor != 1) {
+	packed.push_back(PInst());
+	packed.back().code = CONST;
+	packed.back().carry_1 = p->power * p->factor;
+
+	packed.push_back(PInst());
+	packed.back().code = MULT;
       }
+
+      // p
+      if (p->hp) {
+	packInto(packed, *(p->hp));      
+	packed.push_back(PInst());
+	packed.back().code = MULT;    
+
+	packed.push_back(PInst());
+
+	// f*x^k
+	if (p->power > 0) {
+	  packed.back().carry_1 = p->variable;
+	  packed.back().carry_2 = p->power;
+	  packed.back().code = LOAD;
+
+	  if (p->factor != 1) {
+	    packed.push_back(PInst());
+	    packed.back().code = MULT;
+	  }      
+	} else {
+	  packed.back().carry_1 = p->factor;
+	  packed.back().code = CONST;
+	}
+
+	//p'
+	packDerInto(packed, *(p->hp));
+	packed.push_back(PInst());
+	packed.back().code = MULT;  
+
+	packed.push_back(PInst());
+	packed.back().code = ADD;
+      }
+
+      //q'
+      if (p->hq) {
+	packDerInto(packed, *(p->hq));
+	packed.push_back(PInst());
+	packed.back().code = ADD;	
+      }
+    } else {
+      packed.back().carry_1 = 0;
+      packed.back().code = CONST;
     }
-    return 0;
   }
 
-  inline double evalDer(int pos, const PackedPolynomial& packed, const vector<double>& arg, const unsigned int der, const unsigned int width) {
-    if (pos < packed.size()) {
-      const PolynomialEntry& entry = packed[pos];
-      if (entry.facEnd >= pos) {
-	double p = eval(pos+1, width, packed, arg);
-	p *= entry.factor * arg[entry.var * width + der];
+  inline double eval(const PackedPolynomial& packed, const vector<double>& arg, const unsigned int der, const unsigned int width) {
+    vector<double> data;
+    data.reserve(packed.size());
 
-	if (entry.power > 1)
-	  p *= (entry.factor + entry.power) * powi(arg[entry.var*width], entry.power - 1);
-	
-	double d = evalDer(pos+1, packed, arg, der, width);
-	d *= entry.factor * powi(arg[entry.var*width], entry.power);
-	return p + d + (entry.facEnd > pos ? evalDer(entry.facEnd, packed, arg, der, width) : 0);
-      } else {
-	return 0.0;
+    for (PInst inst : packed) {
+      switch (inst.code) {
+      case CONST : data.push_back(inst.carry_1); break;
+      case LOAD : {
+	data.push_back(powi(arg.at(inst.carry_1 * width), inst.carry_2)); break;
+      }
+      case DER : data.push_back(arg.at(inst.carry_1 * width + der)); break;
+      case MULT : {
+	double last = data.back();
+	data.pop_back();
+	data.back() *= last;
+	break;
+      }
+      case ADD : {
+	double last = data.back(); 
+	data.pop_back();
+	data.back() += last;
+	break;
+      }
       }
     }
-    return 0;
+    
+    return data.back();
   }
 
   double eval(const PackedPolynomial& p, const vector<double>& arg) {
-    return eval(0, 1, p, arg);
+    return eval(p, arg, 0, 1);
   }
 
-  inline double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int width) {
-    return eval(0, width, p, arg);
+  double eval(const PackedPolynomial& p, const vector<double>& arg, const unsigned int width) {
+    return eval(p, arg, 0, width);
   }
-
-  double evalDer(const PackedPolynomial& p, const vector<double>& arg, const unsigned int der, const unsigned int width) {
-    return evalDer(0, p, arg, der, width);
-  }
-
 }

@@ -37,6 +37,10 @@ namespace tnp {
 
     NPNumber multiplyLoop(NPNumber result, unsigned int n);
 
+    NPNumber bellLoop(NPNumber result, unsigned int n);
+
+    NPNumber assignLoop(NPNumber result, unsigned int n);
+
     NPNumber squareLoop(NPNumber result, unsigned int n);
 
     void checkClose(const NPNumber& expected, const NPNumber& actual) {
@@ -71,6 +75,21 @@ namespace tnp {
       NPNumber result = multiplyLoop(one, MANY_ITERATIONS);
 
       BOOST_CHECK_EQUAL(result, one);
+    }
+
+    void testManyAssignments(const std::pair<unsigned int, unsigned int> sizes) {
+      const NPNumber zero(sizes.first, sizes.second, 0.0);
+      cout << "Testing assignments for " << sizes << endl;
+      NPNumber result = assignLoop(zero, MANY_ITERATIONS);
+
+      BOOST_CHECK_EQUAL(result, zero);
+    }
+
+    void testManyBellsOfZero(const std::pair<unsigned int, unsigned int> sizes) {
+      const NPNumber zero(sizes.first, sizes.second, 0.0);
+      NPNumber result = bellLoop(zero, MANY_ITERATIONS);
+
+      BOOST_CHECK_EQUAL(result, zero);
     }
 
     void testManySquaresOfOne(const std::pair<unsigned int, unsigned int> sizes) {

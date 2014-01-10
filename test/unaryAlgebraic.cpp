@@ -20,8 +20,38 @@
 #include <tnp/npnumber.hpp>
 #include <boost/timer/timer.hpp>
 
+#include <tnp/polynomial.hpp>
+
 namespace tnp {
   namespace test {
+
+    NPNumber bellLoopTimed(const SumOfProducts& p, NPNumber result, unsigned int n) {
+      boost::timer::auto_cpu_timer t;
+      double res = 0.0;
+
+      SumOfProducts::evals = 0;
+      for (unsigned int i = 0; i < n; ++i) 
+	res += p.eval(result.data().data(), result.params() + 1);      
+      cout << SumOfProducts::evals << " evaluations" << endl;
+      return result + res;
+    }
+
+    NPNumber bellLoop(NPNumber result, unsigned int n) {
+      cout << "Running bell performance evaluation " << result.order() << endl;
+	for (auto p : tnp::CompositionCache::staticGetInstance(result.order())->bell()) {
+	  cout << p.sum.size() << " products " << endl;
+	  bellLoopTimed(p, result, n);
+	}
+
+      return result;
+    }
+
+    NPNumber assignLoop(NPNumber result, unsigned int n) {
+      boost::timer::auto_cpu_timer t;
+      for(unsigned int i = 0; i < n; ++i)
+	result = result;
+      return result;
+    }
 
     NPNumber multiplyLoop(NPNumber result, unsigned int n) {
       boost::timer::auto_cpu_timer t;
@@ -32,11 +62,14 @@ namespace tnp {
     }
 
     NPNumber squareLoop(NPNumber result, unsigned int n) {
+      cout << "Running pow() performance evaluation, order=" << result.order() << ", params=" << result.params() << endl;
+      cout << "Composition order: " << result.comp()->order << endl;
       boost::timer::auto_cpu_timer t;
-
+      SumOfProducts::evals = 0;
       for (unsigned int i = 0; i < n; ++i)
 	result = result.pow(2);
       return result;
+      cout << SumOfProducts::evals << " evaluations" << endl; 
     }
 
   }

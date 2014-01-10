@@ -26,33 +26,12 @@ namespace tnp {
 
   using namespace std;
   
-  typedef tuple <unsigned int, unsigned int, unsigned int> IntTriple;
-
-  class Product {
-    friend class Multiplication;
-
-    unsigned int factor;
-    IntTriple keys;
-  public:
-    Product() : factor(0), keys(make_tuple(0,0,0)) {}
-    
-    Product(const Product& o) : factor(o.factor), keys(o.keys) {}
-    
-    Product(const unsigned int f, const tuple<unsigned int, unsigned int, unsigned int> k) : factor(f), keys(k) {}
-
-    Product plusOne() const { return Product(factor + 1, keys); }
-
-    Product& operator=(const Product& o) { factor = o.factor; keys = o.keys; return *this; }
-  };
-
   /**
    * Efficient implementation of Multiplication based on stored triples 
    */
   class Multiplication { 
 
     const unsigned int order;
-    //const vector<Product> valueSum;
-    //const vector<Product> partialDerSum;
     const vector<double> binomial;
 
     void evalPartialDerivative(const vector<double>& a, const vector<double>& b,
@@ -61,15 +40,6 @@ namespace tnp {
 
     void evalValue(const vector<double>& a, const vector<double>& b,
 		   vector<double>& target, const unsigned int width) const;
-
-    /*
-    static vector<Product> compileValueSum(const unsigned int order);
-
-    static vector<Product> compileDerSum(const unsigned int order);
-
-    static vector<Product> merge(const vector<Product>& products);    
-    */
-
   public:
     
     /*

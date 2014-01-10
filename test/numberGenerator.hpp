@@ -33,6 +33,9 @@ namespace tnp {
 	  std::make_pair(0,0),
 	    std::make_pair(0,2),
 	    std::make_pair(2,2),
+	    std::make_pair(10,2),
+	    std::make_pair(10,3),
+	    std::make_pair(10,4),
 	    std::make_pair(10,5)});
       return sizes;
     }
@@ -69,7 +72,6 @@ namespace tnp {
 	}
       }
       
-      std::cout << "returning " << v.size() << " test numbers of size: " << sizeof(NPNumber) << std::endl;
       return v;
     }
 
