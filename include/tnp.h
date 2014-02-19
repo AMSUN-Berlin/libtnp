@@ -41,6 +41,23 @@ double tnp_number_partial_derivative(struct tnp_number* nr, int param);
 
 double tnp_number_mixed_derivative(struct tnp_number* nr, int order, int param);
 
+struct tnp_number* tnp_number_add(struct tnp_number* a, struct tnp_number* b);
+
+struct tnp_number* tnp_number_dadd(struct tnp_number* a, double b);
+
+struct tnp_number* tnp_number_mult(struct tnp_number* a, struct tnp_number* b);
+
+struct tnp_number* tnp_number_dmult(struct tnp_number* a, double b);
+
+struct tnp_number* tnp_number_sub(struct tnp_number* a, struct tnp_number* b);
+
+struct tnp_number* tnp_number_dsub(struct tnp_number* a, double b);
+/*
+struct tnp_number* tnp_number_div(struct tnp_number* a, struct tnp_number* b);
+
+struct tnp_number* tnp_number_ddiv(struct tnp_number* a, double b);
+*/
+struct tnp_number* tnp_number_pow(struct tnp_number* a, int power);
 
 #ifdef __cplusplus
 }

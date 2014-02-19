@@ -58,4 +58,42 @@ extern "C" {
     return nr->der(param, order);
   }
 
+  struct tnp_number* tnp_number_add(struct tnp_number* a, struct tnp_number* b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) + (*b)));
+  }
+
+  struct tnp_number* tnp_number_dadd(struct tnp_number* a, double b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) + b));
+  }
+
+  struct tnp_number* tnp_number_mult(struct tnp_number* a, struct tnp_number* b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) * (*b)));
+  }
+
+  struct tnp_number* tnp_number_dmult(struct tnp_number* a, double b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) * b));
+  }
+
+  struct tnp_number* tnp_number_sub(struct tnp_number* a, struct tnp_number* b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) - (*b)));
+  }
+
+  struct tnp_number* tnp_number_dsub(struct tnp_number* a, double b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) - b));
+  }
+
+/*
+  struct tnp_number* tnp_number_div(struct tnp_number* a, struct tnp_number* b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) / (*b)));
+  }
+
+  struct tnp_number* tnp_number_ddiv(struct tnp_number* a, double b) {
+    return static_cast<tnp_number*>(new NPNumber((*a) / b));
+  }
+*/
+
+  struct tnp_number* tnp_number_pow(struct tnp_number* a, int power) {
+    return static_cast<tnp_number*>(new NPNumber(a -> pow(power)));
+  }
+
 }
