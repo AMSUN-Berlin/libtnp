@@ -16,9 +16,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with tnp. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TNP_HPP
-#define TNP_HPP 1
+#ifndef TNP_H
+#define TNP_H 1
 
-#include <tnp/npnumber.hpp>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct tnp_number;
+
+struct tnp_number* tnp_number_create(int params, int order);
+
+void tnp_number_delete(struct tnp_number* nr);
+
+int tnp_number_params(struct tnp_number* nr);
+
+int tnp_number_order(struct tnp_number* nr);
+
+double tnp_number_value(struct tnp_number* nr);
+
+double tnp_number_total_derivative(struct tnp_number* nr, int order);
+
+double tnp_number_partial_derivative(struct tnp_number* nr, int param);
+
+double tnp_number_mixed_derivative(struct tnp_number* nr, int order, int param);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

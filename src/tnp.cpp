@@ -18,3 +18,44 @@
  */
 
 #include <tnp.hpp>
+#include <tnp.h>
+
+using namespace tnp;
+
+extern "C" {
+
+  struct tnp_number : public NPNumber {};
+  
+  struct tnp_number* tnp_number_create(int params, int order) {
+    return static_cast<tnp_number*>(new NPNumber(params, order));
+  }
+  
+  void tnp_number_delete(struct tnp_number* nr) {
+    delete nr;
+  }
+  
+  int tnp_number_params(struct tnp_number* nr) {
+    return nr->params();
+  }
+
+  int tnp_number_order(struct tnp_number* nr) {
+    return nr->order();
+  }
+
+  double tnp_number_value(struct tnp_number* nr) {
+    return nr->data()[0];
+  }
+  
+  double tnp_number_total_derivative(struct tnp_number* nr, int order) {
+    return nr->der(0, order);
+  }
+  
+  double tnp_number_partial_derivative(struct tnp_number* nr, int param) {
+    return nr->der(param, 0);
+  }
+
+  double tnp_number_mixed_derivative(struct tnp_number* nr, int order, int param) {
+    return nr->der(param, order);
+  }
+
+}
