@@ -33,6 +33,7 @@ namespace tnp {
 	  std::make_pair(0,0),
 	    std::make_pair(0,2),
 	    std::make_pair(2,2),
+	    std::make_pair(0,4),
 	    std::make_pair(10,2),
 	    std::make_pair(10,3),
 	    std::make_pair(10,4),

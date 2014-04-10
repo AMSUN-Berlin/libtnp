@@ -36,7 +36,8 @@ namespace tnp {
   const std::vector<double> constant(double val, unsigned int size);
 
   /**
-   * return the n-th variable, with value val 
+   * return the n-th variable, with value val
+   * if n == 0, a constant 1 is created!
    */
   const std::vector<double> variable(double val, unsigned int n, unsigned int size);
 

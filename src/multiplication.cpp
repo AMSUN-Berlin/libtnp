@@ -34,8 +34,8 @@ namespace tnp {
     return b;
   }
 
-  void Multiplication::evalPartialDerivative(const vector<double>& a, const vector<double>& b,
-					     vector<double>& target,
+  void Multiplication::evalPartialDerivative(const double* a, const double* b,
+					     double* target,
 					     const unsigned int width, const unsigned int j) const {
     /*
     double d = 0;
@@ -56,8 +56,8 @@ namespace tnp {
     target[order*width+j] = d;
   }
   
-  void Multiplication::evalValue(const vector<double>& a, const vector<double>& b,
-				 vector<double>& target, const unsigned int width) const {
+  void Multiplication::evalValue(const double* a, const double* b,
+				 double* target, const unsigned int width) const {
     /*
     double d = 0;
     for (Product p : valueSum) {
@@ -77,6 +77,11 @@ namespace tnp {
 
   void Multiplication::apply(const vector<double>& a, const vector<double>& b,
 			     vector<double>& target, unsigned int width) const {
+    apply(a.data(), b.data(), target.data(), width);
+  }
+
+  void Multiplication::apply(const double* a, const double* b,
+			     double* target, unsigned int width) const {
 
     unsigned int params = width - 1;
     

@@ -95,6 +95,12 @@ namespace tnp {
     
     void Composition::apply(const vector<double>& f, const vector<double>& a,
 			    vector<double>& target, const unsigned int width) const {
+      apply(f.data(), a.data(), target.data(), width);
+    }
+    
+    void Composition::apply(const double* f, const double* a,
+		 double* target, unsigned int width) const {
+
       const unsigned int params = width - 1;
       if (order > 0) {
 	last->apply(f, a, target, width);
@@ -105,12 +111,12 @@ namespace tnp {
 	for (int k = 0; k < order; k++) {
 	  const SumOfProducts& bellK = bell_polynomials[k];
 	  const DerSumOfProducts& dBellK = der_bell_polynomials[k];
-	  const double bell = bellK.eval(a.data(), width);
+	  const double bell = bellK.eval(a, width);
 	
 	  target[order*width] += f[k+1] * bell;
 	  
 	  for (int j = 1; j <= params; ++j) {
-	    target[order*width + j] += f[k+2] * a[j] * bell + f[k+1] * dBellK.eval(a.data(), width, j);
+	    target[order*width + j] += f[k+2] * a[j] * bell + f[k+1] * dBellK.eval(a, width, j);
 	  }
 	}
       } else {

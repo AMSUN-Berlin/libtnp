@@ -55,3 +55,8 @@ addTest(free_test_function)
 addTest(free_test_function2)
 addTest(free_test_function3)
 
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)

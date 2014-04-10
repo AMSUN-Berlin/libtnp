@@ -27,6 +27,10 @@ struct tnp_number;
 
 struct tnp_number* tnp_number_create(int params, int order);
 
+struct tnp_number* tnp_number_create_variable(double val, int nr, int params, int order);
+
+struct tnp_number* tnp_number_create_constant(double val, int params, int order);
+
 void tnp_number_delete(struct tnp_number* nr);
 
 int tnp_number_params(struct tnp_number* nr);

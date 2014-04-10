@@ -70,6 +70,10 @@ namespace tnp {
       
       void apply(const vector<double>& a, const vector<double>& b,
 		 vector<double>& target, unsigned int width) const;
+
+      void apply(const double* f, const double* b,
+		 double* target, unsigned int width) const;
+
     };
 
     class CompositionCache {

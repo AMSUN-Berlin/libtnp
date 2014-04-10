@@ -17,6 +17,8 @@
  * along with tnp. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <prettyprint.hpp>
+#include <iostream>
 #include <tnp.hpp>
 #include <tnp.h>
 
@@ -28,6 +30,16 @@ extern "C" {
   
   struct tnp_number* tnp_number_create(int params, int order) {
     return static_cast<tnp_number*>(new NPNumber(params, order));
+  }
+
+  struct tnp_number* tnp_number_create_variable(double val, int nr, int params, int order) {
+    const int width = (params+1);
+    return static_cast<tnp_number*>(new NPNumber(width, variable(val, nr, width * (order+1))));
+  }
+
+  struct tnp_number* tnp_number_create_constant(double val, int params, int order) {
+    const int width = (params+1);
+    return static_cast<tnp_number*>(new NPNumber(width, constant(val, width * (order+1))));
   }
   
   void tnp_number_delete(struct tnp_number* nr) {

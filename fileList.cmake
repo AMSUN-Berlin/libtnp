@@ -12,6 +12,7 @@ set(srcs ${srcs_dir}/tnp.cpp
 	 ${srcs_dir}/multiplication.cpp
 	 ${srcs_dir}/composition.cpp
 	 ${srcs_dir}/polynomial.cpp
+	 ${srcs_dir}/ops.cpp
   )
 
 #Project tests

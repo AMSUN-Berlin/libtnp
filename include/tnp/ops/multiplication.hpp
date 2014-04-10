@@ -34,12 +34,13 @@ namespace tnp {
     const unsigned int order;
     const vector<double> binomial;
 
-    void evalPartialDerivative(const vector<double>& a, const vector<double>& b,
-			       vector<double>& target,
+    void evalPartialDerivative(const double* a, const double* b,
+			       double* target,
 			       const unsigned int width, const unsigned int j) const;
 
-    void evalValue(const vector<double>& a, const vector<double>& b,
-		   vector<double>& target, const unsigned int width) const;
+    void evalValue(const double* a, const double* b,
+		   double* target, const unsigned int width) const;
+
   public:
     
     /*
@@ -73,6 +74,10 @@ namespace tnp {
 
     void apply(const vector<double>& a, const vector<double>& b,
 	       vector<double>& target, unsigned int width) const;
+
+    void apply(const double* a, const double* b,
+	       double* target, unsigned int width) const;
+
   };
 }
 #endif
