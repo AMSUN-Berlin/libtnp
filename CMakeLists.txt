@@ -35,11 +35,11 @@ include_directories(${${PROJECT_NAME}_include_dir})
 include(fileList.cmake)
 
 #Build the library
-add_library(${PROJECT_NAME} SHARED ${srcs} ${hdrs})
+add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_srcs} ${${PROJECT_NAME}_headers})
 
 find_package(Boost COMPONENTS system filesystem timer unit_test_framework REQUIRED)
 
-add_executable(${PROJECT_NAME}_test ${test_sources})
+add_executable(${PROJECT_NAME}_test ${${PROJECT_NAME}_test_sources})
 
 target_link_libraries(${PROJECT_NAME}_test
   ${PROJECT_NAME}
@@ -55,8 +55,16 @@ addTest(free_test_function)
 addTest(free_test_function2)
 addTest(free_test_function3)
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY PUBLIC_HEADER ${${PROJECT_NAME}_headers})
+
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+
+foreach(header ${${PROJECT_NAME}_headers})
+  get_filename_component(header_dir ${header} PATH)
+  file(RELATIVE_PATH rel_header_dir ${${PROJECT_NAME}_include_dir} ${header_dir})
+  install(FILES ${header} DESTINATION include/${rel_header_dir})
+endforeach(header)
