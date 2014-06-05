@@ -24,8 +24,8 @@
 extern "C" {
 #endif
 
-  void op_prepare(int order);
-  
+  #include <stddef.h>
+
   void op_prepare(int order);
   
   size_t tnp_number_payload_size(int params, int order);
