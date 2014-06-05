@@ -26,6 +26,16 @@ extern "C" {
 
   void op_prepare(int order);
   
+  void op_prepare(int order);
+  
+  size_t tnp_number_payload_size(int params, int order);
+  
+  void op_tnp_number_to_zero(int params, int order, double* a);
+
+  void op_tnp_number_write_variable(int params, int order, double* a, double val, int n);
+
+  void op_tnp_number_write_constant(int params, int order, double* a, double val);
+
   double op_tnp_number_total_derivative(int params, double* nr, int order);
 
   double op_tnp_number_partial_derivative(int params, double* nr, int param);

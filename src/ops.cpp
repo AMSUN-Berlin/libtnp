@@ -81,7 +81,7 @@ extern "C" {
   void op_tnp_number_dmult(int params, int order, double* target, double* a, double b) {
     const size_t size = (params + 1) * (order + 1);
     for (size_t i = 0; i < size; i++)
-      target[i] = a[i] + b;
+      target[i] = a[i] * b;
   }
 
   void op_tnp_number_sub(int params, int order, double* target, double* a, double* b) {
